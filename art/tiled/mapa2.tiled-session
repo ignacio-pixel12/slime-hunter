@@ -1,0 +1,23 @@
+{
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "ruinas.tsx": {
+            "scaleInDock": 1.5,
+            "scaleInEditor": 1
+        }
+    },
+    "last.imagePath": "C:/Users/Nitro/Downloads/[FREE] Mine Tileset/FREE/5. Mine Tileset - Starter Pack 16p",
+    "openFiles": [
+    ],
+    "project": "mapa2.tiled-project",
+    "recentFiles": [
+        "ruinas.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

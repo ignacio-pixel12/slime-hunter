@@ -1,0 +1,56 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:8.7.3"
+    }
+}
+
+allprojects {
+    version = "1.0"
+    ext {
+        gdxVersion = "1.12.1"
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url "https://jitpack.io" }
+    }
+}
+
+subprojects {
+    apply plugin: "java-library"
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    compileJava {
+        options.encoding = 'UTF-8'
+    }
+
+    compileTestJava {
+        options.encoding = 'UTF-8'
+    }
+}
+
+project(":core") {
+    dependencies {
+        api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    }
+}
+
+project(":lwjgl3") {
+    apply plugin: "java-library"
+
+    dependencies {
+        implementation project(":core")
+        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    }
+}

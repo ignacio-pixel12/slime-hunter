@@ -1,0 +1,34 @@
+# Eclipse
+.settings/
+.classpath
+.project
+bin/
+*.prefs
+
+# Gradle
+.gradle/
+build/
+*/build/
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# libgdx
+local.properties
+
+# Archivos de compilación
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
