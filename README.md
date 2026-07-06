@@ -30,3 +30,7 @@ cd slime-hunter
 ## Estado actual
 
 Primera pre-entrega: configuración inicial del proyecto y repositorio.
+
+## Documentación
+
+[Ver la Propuesta Completa del Proyecto aquí](https://github.com/ignacio-pixel12/slime-hunter/wiki)
