@@ -10,7 +10,7 @@ Slime Hunter es un videojuego de acción y aventura donde el jugador controls a 
 
 ## Tecnologías
 
-- Java 26
+- Java 25
 - libGDX (framework de desarrollo de videojuegos)
 - Plataforma: Escritorio (LWJGL3)
 
