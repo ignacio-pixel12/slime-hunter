@@ -6,7 +6,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.
 
 ## [0.1.0] - 2026-07-06
 
-### Added
+### Agregado
 
 - Estructura inicial del proyecto con libGDX (core + lwjgl3).
 - Configuración de Gradle 9.4.0 con Java 25 (Eclipse Adoptium JDK 25).
@@ -17,25 +17,27 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.
 
 ## [0.2.0] - 2026-07-10
 
-### Added
+### Agregado
 
 - Archivo `README.md` con descripción del proyecto, integrantes, tecnologías e instrucciones de ejecución.
 - Archivo `CHANGELOG.md` con registro de cambios.
 - Enlace a la Wiki del repositorio desde el README.
 
-### Changed
+### Cambiado
 
 - Configuración de Java 25 como toolchain en Gradle (consistente en build.gradle).
 
 ## [0.3.0] - 2026-07-13
 
-### Added
+### Agregado
 
-- Propuesta formal del proyecto en la Wiki del repositorio (Home).
+- Propuesta formal del proyecto en la Wiki del repositorio (Home), con formato Markdown, imagen del escudo de la escuela y links externos formateados.
 - Archivo `propuesta-wiki.md` en `docs/` como respaldo local de la propuesta en Markdown.
 - Colaborador `jasinski1988` agregado al repositorio.
 
-### Fixed
+### Corregido
 
 - Corrección de la configuración de Gradle: eliminación de dependencia innecesaria de Android Gradle Plugin.
 - Configuración de la tarea `run` en el subproyecto lwjgl3 mediante el plugin `application`.
+- Corrección de encabezados del CHANGELOG al español (Agregado, Cambiado, Corregido).
+- Corrección de instrucciones en README: "JDK 25" (sin "o superior").

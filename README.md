@@ -21,7 +21,7 @@ El mundo está compuesto por una ciudad inicial (zona segura y menú principal),
 
 ## Requisitos previos
 
-- **JDK 25:** Se requiere Eclipse Adoptium JDK 25 o superior. Se puede descargar desde [Adoptium](https://adoptium.net/).
+- **JDK 25:** Se requiere Eclipse Adoptium JDK 25. Se puede descargar desde [Adoptium](https://adoptium.net/).
 - **Git:** Para clonar el repositorio. Se puede descargar desde [git-scm.com](https://git-scm.com/downloads).
 
 Para verificar la instalación del JDK, ejecutá en una terminal:
@@ -30,7 +30,7 @@ Para verificar la instalación del JDK, ejecutá en una terminal:
 java -version
 ```
 
-Debe mostrar `25` o superior.
+Debe mostrar `25`.
 
 ## Cómo compilar y ejecutar
 
