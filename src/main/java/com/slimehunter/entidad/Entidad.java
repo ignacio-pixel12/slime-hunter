@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
+import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.GestorSprites;
 
 public abstract class Entidad extends Sprite {
@@ -17,6 +18,7 @@ public abstract class Entidad extends Sprite {
     private final float velocidadMovimiento;
     private final TablaEstados tablaEstados;
     private boolean enElSuelo;
+    private Direccion direccion;
 
     protected Entidad(TextureRegion region, float x, float y, float velocidadMovimiento,
                       int cantidadEstados, GestorSprites gestorSprites) {
@@ -36,6 +38,7 @@ public abstract class Entidad extends Sprite {
         this.velocidadMovimiento = velocidadMovimiento;
         this.tablaEstados = new TablaEstados(cantidadEstados);
         this.enElSuelo = true;
+        this.direccion = Direccion.DERECHA;
         setPosition(x, y);
     }
 
@@ -62,10 +65,12 @@ public abstract class Entidad extends Sprite {
 
     public void moverIzquierda() {
         velocidad.x = -velocidadMovimiento;
+        direccion = Direccion.IZQUIERDA;
     }
 
     public void moverDerecha() {
         velocidad.x = velocidadMovimiento;
+        direccion = Direccion.DERECHA;
     }
 
     public void detener() {
@@ -112,5 +117,9 @@ public abstract class Entidad extends Sprite {
 
     public boolean estaEnElSuelo() {
         return enElSuelo;
+    }
+
+    public Direccion getDireccion() {
+        return direccion;
     }
 }

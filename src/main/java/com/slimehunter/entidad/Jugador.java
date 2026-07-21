@@ -72,10 +72,7 @@ public class Jugador extends Entidad {
         TextureRegion frameActual = obtenerFrameSegunEstado();
         setRegion(frameActual);
 
-        boolean mirandoDerecha = getVelocidad().x >= 0;
-        if (getVelocidad().x == 0) {
-            mirandoDerecha = getDireccion() != null && getDireccion() == Direccion.DERECHA;
-        }
+        boolean mirandoDerecha = getDireccion() == Direccion.DERECHA;
         voltearSprite(mirandoDerecha);
     }
 
@@ -127,12 +124,6 @@ public class Jugador extends Entidad {
             case MURIENDO -> "muerte";
             case DESPLAZANDO -> "dash";
         };
-    }
-
-    private Direccion getDireccion() {
-        if (getVelocidad().x < 0) return Direccion.IZQUIERDA;
-        if (getVelocidad().x > 0) return Direccion.DERECHA;
-        return null;
     }
 
     public void render(SpriteBatch batch) {
