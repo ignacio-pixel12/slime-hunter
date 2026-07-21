@@ -8,6 +8,8 @@ import com.slimehunter.entidad.Entidad;
 public class ManejadorEntrada extends InputAdapter {
 
     private final Entidad entidad;
+    private boolean izquierdaPresionada;
+    private boolean derechaPresionada;
 
     public ManejadorEntrada(Entidad entidad) {
         if (entidad == null) {
@@ -21,14 +23,16 @@ public class ManejadorEntrada extends InputAdapter {
         switch (keycode) {
             case Input.Keys.A:
             case Input.Keys.LEFT:
-                entidad.moverIzquierda();
+                this.izquierdaPresionada = true;
+                this.entidad.moverIzquierda();
                 return true;
             case Input.Keys.D:
             case Input.Keys.RIGHT:
-                entidad.moverDerecha();
+                this.derechaPresionada = true;
+                this.entidad.moverDerecha();
                 return true;
             case Input.Keys.SPACE:
-                entidad.saltar();
+                this.entidad.saltar();
                 return true;
             default:
                 return false;
@@ -40,9 +44,21 @@ public class ManejadorEntrada extends InputAdapter {
         switch (keycode) {
             case Input.Keys.A:
             case Input.Keys.LEFT:
+                this.izquierdaPresionada = false;
+                if (this.derechaPresionada) {
+                    this.entidad.moverDerecha();
+                } else {
+                    this.entidad.detener();
+                }
+                return true;
             case Input.Keys.D:
             case Input.Keys.RIGHT:
-                entidad.detener();
+                this.derechaPresionada = false;
+                if (this.izquierdaPresionada) {
+                    this.entidad.moverIzquierda();
+                } else {
+                    this.entidad.detener();
+                }
                 return true;
             default:
                 return false;

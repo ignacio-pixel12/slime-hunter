@@ -43,19 +43,19 @@ public abstract class Entidad extends Sprite {
     }
 
     public void actualizar(float delta) {
-        velocidad.y -= Constantes.GRAVEDAD * delta;
+        this.velocidad.y -= Constantes.GRAVEDAD * delta;
 
-        posicion.add(velocidad.x * delta, velocidad.y * delta);
+        this.posicion.add(this.velocidad.x * delta, this.velocidad.y * delta);
 
-        if (posicion.y <= Constantes.NIVEL_SUELO) {
-            posicion.y = Constantes.NIVEL_SUELO;
-            velocidad.y = 0;
-            enElSuelo = true;
+        if (this.posicion.y <= Constantes.NIVEL_SUELO) {
+            this.posicion.y = Constantes.NIVEL_SUELO;
+            this.velocidad.y = 0;
+            this.enElSuelo = true;
         } else {
-            enElSuelo = false;
+            this.enElSuelo = false;
         }
 
-        setPosition(posicion.x, posicion.y);
+        setPosition(this.posicion.x, this.posicion.y);
         actualizarEstado(delta);
     }
 
@@ -64,23 +64,23 @@ public abstract class Entidad extends Sprite {
     protected abstract TextureRegion obtenerFrameSegunEstado();
 
     public void moverIzquierda() {
-        velocidad.x = -velocidadMovimiento;
-        direccion = Direccion.IZQUIERDA;
+        this.velocidad.x = -this.velocidadMovimiento;
+        this.direccion = Direccion.IZQUIERDA;
     }
 
     public void moverDerecha() {
-        velocidad.x = velocidadMovimiento;
-        direccion = Direccion.DERECHA;
+        this.velocidad.x = this.velocidadMovimiento;
+        this.direccion = Direccion.DERECHA;
     }
 
     public void detener() {
-        velocidad.x = 0;
+        this.velocidad.x = 0;
     }
 
     public void saltar() {
-        if (enElSuelo) {
-            velocidad.y = Constantes.FUERZA_SALTO;
-            enElSuelo = false;
+        if (this.enElSuelo) {
+            this.velocidad.y = Constantes.FUERZA_SALTO;
+            this.enElSuelo = false;
         }
     }
 
