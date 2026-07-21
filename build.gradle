@@ -1,49 +1,102 @@
-allprojects {
-    version = "1.0"
-    ext {
-        gdxVersion = "1.12.1"
-    }
+plugins {
+    id 'java-library'
+    id 'com.gradleup.shadow' version '9.0.0-beta12'
+}
 
-    repositories {
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-        maven { url "https://jitpack.io" }
+ext {
+    gdxVersion = "1.12.1"
+    asepritePath = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Aseprite\\Aseprite.exe"
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url = "https://oss.sonatype.org/content/repositories/releases/" }
+    maven { url = "https://jitpack.io" }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
-subprojects {
-    apply plugin: "java-library"
+compileJava {
+    options.encoding = 'UTF-8'
+}
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_25
-        targetCompatibility = JavaVersion.VERSION_25
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(25)
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    archiveBaseName.set('slime-hunter')
+
+    manifest {
+        attributes 'Main-Class': 'com.slimehunter.desktop.Lwjgl3Launcher'
+    }
+}
+
+tasks.register('exportarSprites') {
+    description = 'Exporta archivos .aseprite a spritesheets PNG + JSON'
+    group = 'art'
+
+    def carpetaOrigen = file('art/aseprite')
+    def carpetaDestino = file('src/main/resources')
+
+    inputs.dir(carpetaOrigen)
+    outputs.dir(carpetaDestino)
+
+    doLast {
+        carpetaOrigen.listFiles()?.each { archivo ->
+            if (archivo.name.endsWith('.aseprite')) {
+                def nombreBase = archivo.name.replace('.aseprite', '')
+                def pngSalida = new File(carpetaDestino, "${nombreBase}-sheet.png")
+                def jsonSalida = new File(carpetaDestino, "${nombreBase}-data.json")
+
+                println "Exportando: ${archivo.name} -> ${pngSalida.name}, ${jsonSalida.name}"
+
+                def proceso = new ProcessBuilder(
+                    asepritePath, '-b',
+                    archivo.absolutePath,
+                    '--data', jsonSalida.absolutePath,
+                    '--sheet', pngSalida.absolutePath,
+                    '--sheet-pack',
+                    '--scale', '1',
+                    '--list-tags',
+                    '--list-slices'
+                )
+                proceso.redirectErrorStream(true)
+                def resultado = proceso.start()
+                def salida = resultado.inputStream.text
+                def codigoSalida = resultado.waitFor()
+                if (codigoSalida != 0) {
+                    println "Error exportando ${archivo.name}: ${salida}"
+                }
+            }
         }
     }
-
-    compileJava {
-        options.encoding = 'UTF-8'
-    }
-
-    compileTestJava {
-        options.encoding = 'UTF-8'
-    }
 }
 
-project(":core") {
-    dependencies {
-        api "com.badlogicgames.gdx:gdx:$gdxVersion"
-    }
-}
-
-project(":lwjgl3") {
-    apply plugin: "java-library"
-
-    dependencies {
-        implementation project(":core")
-        implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-    }
+tasks.register('run', JavaExec) {
+    dependsOn exportarSprites
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('com.slimehunter.desktop.Lwjgl3Launcher')
+    jvmArgs = [
+        '--add-exports', 'java.base/java.lang=ALL-UNNAMED',
+        '--add-exports', 'java.base/java.nio=ALL-UNNAMED',
+        '--add-exports', 'java.base/sun.nio.ch=ALL-UNNAMED',
+        '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+        '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+        '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+    ]
 }
