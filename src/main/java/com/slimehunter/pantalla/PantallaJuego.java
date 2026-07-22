@@ -24,9 +24,9 @@ public class PantallaJuego implements Screen {
         float centroX = Gdx.graphics.getWidth() / 2f;
         float centroY = Gdx.graphics.getHeight() / 2f;
 
-        jugador = new Jugador(centroX, centroY, Constantes.VELOCIDAD_JUGADOR);
-        manejadorEntrada = new ManejadorEntrada(jugador);
-        Gdx.input.setInputProcessor(manejadorEntrada);
+        this.manejadorEntrada = new ManejadorEntrada();
+        this.jugador = new Jugador(centroX, centroY, this.manejadorEntrada);
+        Gdx.input.setInputProcessor(this.manejadorEntrada);
     }
 
     @Override

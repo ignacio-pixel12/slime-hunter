@@ -170,15 +170,15 @@ public class GestorSprites {
         return animaciones.containsKey(nombre);
     }
 
-    public Texture getTextura() {
+    public Texture obtenerTextura() {
         return textura;
     }
 
-    public int getAnchoFrame() {
+    public int obtenerAnchoFrame() {
         return anchoFrame;
     }
 
-    public int getAltoFrame() {
+    public int obtenerAltoFrame() {
         return altoFrame;
     }
 

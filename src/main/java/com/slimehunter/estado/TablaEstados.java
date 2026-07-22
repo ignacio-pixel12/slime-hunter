@@ -1,50 +1,37 @@
 package com.slimehunter.estado;
 
+import com.slimehunter.grafico.EstadoAnimacion;
+
 public class TablaEstados {
 
     private final int[][] transiciones;
-    private int estadoActual;
+    private EstadoAnimacion estadoActual;
+    private EstadoAnimacion estadoAnterior;
 
     public TablaEstados(int cantidadEstados) {
-        if (cantidadEstados <= 0) {
-            throw new IllegalArgumentException("La cantidad de estados debe ser mayor a 0");
-        }
         this.transiciones = new int[cantidadEstados][cantidadEstados];
-        this.estadoActual = 0;
+        this.estadoActual = EstadoAnimacion.INACTIVO;
+        this.estadoAnterior = null;
     }
 
-    public void registrarTransicion(int origen, int destino) {
-        validarIndice(origen);
-        validarIndice(destino);
-        transiciones[origen][destino] = 1;
+    public void registrarTransicion(EstadoAnimacion origen, EstadoAnimacion destino) {
+        this.transiciones[origen.ordinal()][destino.ordinal()] = 1;
     }
 
-    public boolean puedeTransitir(int origen, int destino) {
-        validarIndice(origen);
-        validarIndice(destino);
-        return transiciones[origen][destino] == 1;
-    }
-
-    public boolean intentarCambioEstado(int nuevoEstado) {
-        if (puedeTransitir(estadoActual, nuevoEstado)) {
-            estadoActual = nuevoEstado;
+    public boolean cambiarEstado(EstadoAnimacion nuevoEstado) {
+        if (this.transiciones[this.estadoActual.ordinal()][nuevoEstado.ordinal()] == 1) {
+            this.estadoAnterior = this.estadoActual;
+            this.estadoActual = nuevoEstado;
             return true;
         }
         return false;
     }
 
-    public int getEstadoActual() {
-        return estadoActual;
+    public EstadoAnimacion obtenerEstadoActual() {
+        return this.estadoActual;
     }
 
-    public void setEstadoActual(int estado) {
-        validarIndice(estado);
-        this.estadoActual = estado;
-    }
-
-    private void validarIndice(int indice) {
-        if (indice < 0 || indice >= transiciones.length) {
-            throw new IllegalArgumentException("Índice de estado fuera de rango: " + indice);
-        }
+    public EstadoAnimacion obtenerEstadoAnterior() {
+        return this.estadoAnterior;
     }
 }

@@ -4,9 +4,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import com.slimehunter.Constantes;
+import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.EstadoAnimacion;
 import com.slimehunter.grafico.GestorSprites;
+import com.slimehunter.input.Entrada;
 
 public class Jugador extends Entidad {
 
@@ -15,17 +17,18 @@ public class Jugador extends Entidad {
     private final GestorSprites gestorSprites;
     private float tiempoAnimacion;
 
-    public Jugador(float x, float y, float velocidadMovimiento) {
-        super(obtenerFrameInicial(), x, y, velocidadMovimiento,
-              EstadoAnimacion.values().length, gestorCache);
+    public Jugador(float x, float y, Entrada entrada) {
+        super(obtenerFrameInicial(), x, y,
+              Constantes.ACELERACION_JUGADOR, Constantes.FRICCION_JUGADOR,
+              EstadoAnimacion.values().length, gestorCache, entrada);
         this.gestorSprites = gestorCache;
         gestorCache = null;
         this.tiempoAnimacion = 0f;
 
-        setSize(gestorSprites.getAnchoFrame() * 3f, gestorSprites.getAltoFrame() * 3f);
+        setSize(this.gestorSprites.getAnchoFrame() * 3f, this.gestorSprites.getAltoFrame() * 3f);
         setOriginCenter();
 
-        registrarTransiciones();
+        this.registrarTransiciones();
     }
 
     private static TextureRegion obtenerFrameInicial() {
@@ -37,83 +40,118 @@ public class Jugador extends Entidad {
     }
 
     private void registrarTransiciones() {
-        var tabla = getTablaEstados();
+        TablaEstados t = this.getTablaEstados();
 
-        tabla.registrarTransicion(EstadoAnimacion.INACTIVO.ordinal(), EstadoAnimacion.CAMINANDO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.INACTIVO.ordinal(), EstadoAnimacion.SALTANDO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.INACTIVO.ordinal(), EstadoAnimacion.ATACANDO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.INACTIVO.ordinal(), EstadoAnimacion.DESPLAZANDO.ordinal());
+        t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.CAMINANDO);
+        t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.SALTANDO);
+        t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.CAYENDO);
 
-        tabla.registrarTransicion(EstadoAnimacion.CAMINANDO.ordinal(), EstadoAnimacion.INACTIVO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.CAMINANDO.ordinal(), EstadoAnimacion.SALTANDO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.CAMINANDO.ordinal(), EstadoAnimacion.ATACANDO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.CAMINANDO.ordinal(), EstadoAnimacion.DESPLAZANDO.ordinal());
+        t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.INACTIVO);
+        t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.SALTANDO);
+        t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.CAYENDO);
 
-        tabla.registrarTransicion(EstadoAnimacion.SALTANDO.ordinal(), EstadoAnimacion.CAYENDO.ordinal());
+        t.registrarTransicion(EstadoAnimacion.SALTANDO, EstadoAnimacion.CAYENDO);
 
-        tabla.registrarTransicion(EstadoAnimacion.CAYENDO.ordinal(), EstadoAnimacion.INACTIVO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.CAYENDO.ordinal(), EstadoAnimacion.CAMINANDO.ordinal());
-
-        tabla.registrarTransicion(EstadoAnimacion.ATACANDO.ordinal(), EstadoAnimacion.INACTIVO.ordinal());
-
-        tabla.registrarTransicion(EstadoAnimacion.RECIBIENDO_DANO.ordinal(), EstadoAnimacion.INACTIVO.ordinal());
-
-        tabla.registrarTransicion(EstadoAnimacion.DESPLAZANDO.ordinal(), EstadoAnimacion.INACTIVO.ordinal());
-        tabla.registrarTransicion(EstadoAnimacion.DESPLAZANDO.ordinal(), EstadoAnimacion.CAMINANDO.ordinal());
+        t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.INACTIVO);
+        t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.CAMINANDO);
     }
 
     @Override
     protected void actualizarEstado(float delta) {
-        tiempoAnimacion += delta;
+        this.tiempoAnimacion += delta;
 
-        int estadoSugerido = calcularEstadoSugerido();
-        getTablaEstados().intentarCambioEstado(estadoSugerido);
+        EstadoAnimacion estado = this.getTablaEstados().getEstadoActual();
+        switch (estado) {
+            case INACTIVO: this.updateInactivo(delta); break;
+            case CAMINANDO: this.updateCaminando(delta); break;
+            case SALTANDO: this.updateSaltando(delta); break;
+            case CAYENDO: this.updateCayendo(delta); break;
+            default: break;
+        }
 
-        TextureRegion frameActual = obtenerFrameSegunEstado();
-        setRegion(frameActual);
+        String nombre = this.getNombreAnimacion(estado);
+        if (this.gestorSprites.existeAnimacion(nombre)) {
+            this.setRegion(this.gestorSprites.obtenerFrame(nombre, this.tiempoAnimacion));
+        }
 
-        boolean mirandoDerecha = getDireccion() == Direccion.DERECHA;
-        voltearSprite(mirandoDerecha);
+        this.voltearSprite(this.getDireccion() == Direccion.DERECHA);
     }
 
-    private int calcularEstadoSugerido() {
-        if (!estaEnElSuelo()) {
-            if (getVelocidad().y > 0) {
-                return EstadoAnimacion.SALTANDO.ordinal();
+    private void updateInactivo(float delta) {
+        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.INACTIVO) {
+            this.setRegion(this.gestorSprites.obtenerFrame("inactivo", 0));
+            this.detener();
+        }
+
+        Entrada e = this.getEntrada();
+        if (e.debeSaltar()) {
+            this.saltar();
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.SALTANDO);
+        } else if (e.debeMoverIzquierda()) {
+            this.mover(-Constantes.ACELERACION_JUGADOR);
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
+        } else if (e.debeMoverDerecha()) {
+            this.mover(Constantes.ACELERACION_JUGADOR);
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
+        }
+        
+        if (this.getVelocidad().y < 0) {
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAYENDO);
+        }
+    }
+
+    private void updateCaminando(float delta) {
+        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.CAMINANDO) {
+            this.setRegion(this.gestorSprites.obtenerFrame("caminar", 0));
+        }
+
+        Entrada e = this.getEntrada();
+        if (e.debeSaltar()) {
+            this.saltar();
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.SALTANDO);
+        } else if (e.debeMoverIzquierda()) {
+            this.mover(-Constantes.ACELERACION_JUGADOR);
+        } else if (e.debeMoverDerecha()) {
+            this.mover(Constantes.ACELERACION_JUGADOR);
+        } else {
+            this.detener();
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);
+        }
+        if (this.getVelocidad().y < 0) {
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAYENDO);
+        }
+    }
+
+    private void updateSaltando(float delta) {
+        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.SALTANDO) {
+            this.setRegion(this.gestorSprites.obtenerFrame("salto", 0));
+        }
+
+        if (this.getVelocidad().y < 0) {
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAYENDO);
+        }
+    }
+
+    private void updateCayendo(float delta) {
+        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.CAYENDO) {
+            this.setRegion(this.gestorSprites.obtenerFrame("caida", 0));
+        }
+
+        if (this.estaEnElSuelo()) {
+            Entrada e = this.getEntrada();
+            if (e.debeMoverIzquierda()) {
+                this.mover(-Constantes.ACELERACION_JUGADOR);
+                this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
+            } else if (e.debeMoverDerecha()) {
+                this.mover(Constantes.ACELERACION_JUGADOR);
+                this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
             } else {
-                return EstadoAnimacion.CAYENDO.ordinal();
+                this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);
             }
         }
-
-        if (Math.abs(getVelocidad().x) > 0) {
-            return EstadoAnimacion.CAMINANDO.ordinal();
-        }
-
-        return EstadoAnimacion.INACTIVO.ordinal();
     }
 
-    @Override
-    protected TextureRegion obtenerFrameSegunEstado() {
-        EstadoAnimacion estado = EstadoAnimacion.values()[getTablaEstados().getEstadoActual()];
-        String nombreAnimacion = mapearEstadoANombre(estado);
-
-        if (gestorSprites.existeAnimacion(nombreAnimacion)) {
-            boolean loop = estado != EstadoAnimacion.SALTANDO
-                        && estado != EstadoAnimacion.CAYENDO
-                        && estado != EstadoAnimacion.ATACANDO
-                        && estado != EstadoAnimacion.RECIBIENDO_DANO
-                        && estado != EstadoAnimacion.MURIENDO
-                        && estado != EstadoAnimacion.DESPLAZANDO;
-            if (loop) {
-                return gestorSprites.obtenerFrame(nombreAnimacion, tiempoAnimacion);
-            } else {
-                return gestorSprites.obtenerFrameSinLoop(nombreAnimacion, tiempoAnimacion);
-            }
-        }
-        return gestorSprites.obtenerFrameInactivo();
-    }
-
-    private String mapearEstadoANombre(EstadoAnimacion estado) {
+    private String getNombreAnimacion(EstadoAnimacion estado) {
         return switch (estado) {
             case INACTIVO -> "inactivo";
             case CAMINANDO -> "caminar";
@@ -126,15 +164,20 @@ public class Jugador extends Entidad {
         };
     }
 
+    @Override
+    protected TextureRegion obtenerFrameSegunEstado() {
+        return null;
+    }
+
     public void render(SpriteBatch batch) {
         draw(batch);
     }
 
     public void dispose() {
-        gestorSprites.dispose();
+        this.gestorSprites.dispose();
     }
 
-    public GestorSprites getGestorSprites() {
-        return gestorSprites;
+    public GestorSprites obtenerGestorSprites() {
+        return this.gestorSprites;
     }
 }

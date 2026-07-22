@@ -12,8 +12,13 @@ public final class Constantes {
 
     public static final float VELOCIDAD_JUGADOR = 200f;
 
-    public static final float FUERZA_SALTO = 450f;
+    public static final float FUERZA_SALTO = 500f;
     public static final float GRAVEDAD = 980f;
+    public static final float FRICCION_AIRE = 3f;
+
+    public static final float ACELERACION_JUGADOR = 1800f;
+	public static final float FRICCION_JUGADOR = 8f;
+
     public static final float NIVEL_SUELO = 100f;
 
     public static final float DURACION_FRAME_DEFAULT = 0.15f;

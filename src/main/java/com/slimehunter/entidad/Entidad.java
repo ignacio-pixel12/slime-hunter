@@ -10,42 +10,61 @@ import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.GestorSprites;
+import com.slimehunter.input.Entrada;
 
 public abstract class Entidad extends Sprite {
 
     private final Vector2 posicion;
     private final Vector2 velocidad;
-    private final float velocidadMovimiento;
+    private final Vector2 aceleracion;
+    private final Vector2 friccion;
     private final TablaEstados tablaEstados;
     private boolean enElSuelo;
     private Direccion direccion;
+    private Entrada entrada;
 
-    protected Entidad(TextureRegion region, float x, float y, float velocidadMovimiento,
-                      int cantidadEstados, GestorSprites gestorSprites) {
+    protected Entidad(TextureRegion region, float x, float y,
+                      float aceleracionMovimiento, float friccionMovimiento,
+                      int cantidadEstados, GestorSprites gestorSprites, Entrada entrada) {
         super(region);
-        if (Float.isNaN(x) || Float.isInfinite(x)) {
-            throw new IllegalArgumentException("La posición X no puede ser NaN o infinita");
-        }
-        if (Float.isNaN(y) || Float.isInfinite(y)) {
-            throw new IllegalArgumentException("La posición Y no puede ser NaN o infinita");
-        }
-        if (velocidadMovimiento <= 0) {
-            throw new IllegalArgumentException("La velocidad de movimiento debe ser mayor a 0");
-        }
-
         this.posicion = new Vector2(x, y);
         this.velocidad = new Vector2(0, 0);
-        this.velocidadMovimiento = velocidadMovimiento;
+        this.aceleracion = new Vector2(0, 0);
+        this.friccion = new Vector2(friccionMovimiento, 0);
         this.tablaEstados = new TablaEstados(cantidadEstados);
         this.enElSuelo = true;
         this.direccion = Direccion.DERECHA;
+        this.entrada = entrada;
         setPosition(x, y);
     }
 
     public void actualizar(float delta) {
-        this.velocidad.y -= Constantes.GRAVEDAD * delta;
+        this.aceleracion.x = 0;
 
-        this.posicion.add(this.velocidad.x * delta, this.velocidad.y * delta);
+        actualizarEstado(delta);
+
+        if (!this.enElSuelo) {
+            this.aceleracion.y = -Constantes.GRAVEDAD;
+        } else {
+            this.velocidad.y = 0;
+        }
+
+        this.velocidad.x += this.aceleracion.x * delta;
+        this.velocidad.y += this.aceleracion.y * delta;
+
+        if (this.enElSuelo) {
+            this.velocidad.x *= (1 - this.friccion.x * delta);
+            if (Math.abs(this.velocidad.x) < 0.5f) {
+                this.velocidad.x = 0;
+            }
+        } else {
+            if (this.friccion.y > 0) {
+                this.velocidad.y *= (1 - this.friccion.y * delta);
+            }
+        }
+
+        this.posicion.x += this.velocidad.x * delta;
+        this.posicion.y += this.velocidad.y * delta;
 
         if (this.posicion.y <= Constantes.NIVEL_SUELO) {
             this.posicion.y = Constantes.NIVEL_SUELO;
@@ -56,25 +75,23 @@ public abstract class Entidad extends Sprite {
         }
 
         setPosition(this.posicion.x, this.posicion.y);
-        actualizarEstado(delta);
     }
 
     protected abstract void actualizarEstado(float delta);
 
     protected abstract TextureRegion obtenerFrameSegunEstado();
 
-    public void moverIzquierda() {
-        this.velocidad.x = -this.velocidadMovimiento;
-        this.direccion = Direccion.IZQUIERDA;
-    }
-
-    public void moverDerecha() {
-        this.velocidad.x = this.velocidadMovimiento;
-        this.direccion = Direccion.DERECHA;
+    public void mover(float aceleracionX) {
+        this.aceleracion.x = aceleracionX;
+        if (aceleracionX < 0) {
+            this.direccion = Direccion.IZQUIERDA;
+        } else if (aceleracionX > 0) {
+            this.direccion = Direccion.DERECHA;
+        }
     }
 
     public void detener() {
-        this.velocidad.x = 0;
+        this.aceleracion.x = 0;
     }
 
     public void saltar() {
@@ -96,30 +113,34 @@ public abstract class Entidad extends Sprite {
     }
 
     public Rectangle obtenerLimites() {
-        return new Rectangle(posicion.x, posicion.y, getWidth(), getHeight());
+        return new Rectangle(this.posicion.x, this.posicion.y, getWidth(), getHeight());
     }
 
-    protected TablaEstados getTablaEstados() {
-        return tablaEstados;
+    public TablaEstados obtenerTablaEstados() {
+        return this.tablaEstados;
     }
 
-    public Vector2 getPosicion() {
-        return posicion;
+    public Vector2 obtenerPosicion() {
+        return this.posicion;
     }
 
-    public Vector2 getVelocidad() {
-        return velocidad;
+    public Vector2 obtenerVelocidad() {
+        return this.velocidad;
     }
 
-    public float getVelocidadMovimiento() {
-        return velocidadMovimiento;
+    public Vector2 obtenerAceleracion() {
+        return this.aceleracion;
     }
 
     public boolean estaEnElSuelo() {
-        return enElSuelo;
+        return this.enElSuelo;
     }
 
-    public Direccion getDireccion() {
-        return direccion;
+    public Direccion obtenerDireccion() {
+        return this.direccion;
+    }
+
+    protected Entrada obtenerEntrada() {
+        return this.entrada;
     }
 }
