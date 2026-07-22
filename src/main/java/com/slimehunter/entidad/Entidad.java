@@ -116,19 +116,19 @@ public abstract class Entidad extends Sprite {
         return new Rectangle(this.posicion.x, this.posicion.y, getWidth(), getHeight());
     }
 
-    public TablaEstados obtenerTablaEstados() {
+    public TablaEstados getTablaEstados() {
         return this.tablaEstados;
     }
 
-    public Vector2 obtenerPosicion() {
+    public Vector2 getPosicion() {
         return this.posicion;
     }
 
-    public Vector2 obtenerVelocidad() {
+    public Vector2 getVelocidad() {
         return this.velocidad;
     }
 
-    public Vector2 obtenerAceleracion() {
+    public Vector2 getAceleracion() {
         return this.aceleracion;
     }
 
@@ -136,11 +136,11 @@ public abstract class Entidad extends Sprite {
         return this.enElSuelo;
     }
 
-    public Direccion obtenerDireccion() {
+    public Direccion getDireccion() {
         return this.direccion;
     }
 
-    protected Entrada obtenerEntrada() {
+    protected Entrada getEntrada() {
         return this.entrada;
     }
 }

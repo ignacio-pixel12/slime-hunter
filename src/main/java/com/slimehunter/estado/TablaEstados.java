@@ -27,11 +27,11 @@ public class TablaEstados {
         return false;
     }
 
-    public EstadoAnimacion obtenerEstadoActual() {
+    public EstadoAnimacion getEstadoActual() {
         return this.estadoActual;
     }
 
-    public EstadoAnimacion obtenerEstadoAnterior() {
+    public EstadoAnimacion getEstadoAnterior() {
         return this.estadoAnterior;
     }
 }
