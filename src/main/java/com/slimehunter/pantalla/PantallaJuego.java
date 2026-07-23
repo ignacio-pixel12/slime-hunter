@@ -6,14 +6,21 @@ import com.badlogic.gdx.graphics.GL20;
 
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
+import com.slimehunter.entidad.Entidad;
 import com.slimehunter.entidad.Jugador;
+import com.slimehunter.grafico.DebugColisiones;
 import com.slimehunter.input.ManejadorEntrada;
+import com.slimehunter.mapa.Suelo;
+
+import java.util.List;
 
 public class PantallaJuego implements Screen {
 
     private final SlimeHunter juego;
     private Jugador jugador;
+    private Suelo suelo;
     private ManejadorEntrada manejadorEntrada;
+    private DebugColisiones debugColisiones;
 
     public PantallaJuego(SlimeHunter juego) {
         this.juego = juego;
@@ -25,7 +32,9 @@ public class PantallaJuego implements Screen {
         float centroY = Gdx.graphics.getHeight() / 2f;
 
         this.manejadorEntrada = new ManejadorEntrada();
-        this.jugador = new Jugador(centroX, centroY, this.manejadorEntrada);
+        this.jugador = new Jugador(centroX, centroY + 200, this.manejadorEntrada);
+        this.suelo = new Suelo(0, 0, Gdx.graphics.getWidth() * 2, Constantes.NIVEL_SUELO);
+        this.debugColisiones = new DebugColisiones();
         Gdx.input.setInputProcessor(this.manejadorEntrada);
     }
 
@@ -39,11 +48,14 @@ public class PantallaJuego implements Screen {
         );
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        jugador.actualizar(delta);
+        this.jugador.actualizar(delta, List.of(this.suelo));
 
-        juego.getBatch().begin();
-        jugador.render(juego.getBatch());
-        juego.getBatch().end();
+        this.juego.getBatch().begin();
+        this.suelo.render(this.juego.getBatch());
+        this.jugador.render(this.juego.getBatch());
+        this.juego.getBatch().end();
+
+        this.debugColisiones.renderizar(List.of(this.jugador, this.suelo));
     }
 
     @Override
@@ -64,6 +76,7 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void dispose() {
-        jugador.dispose();
+        this.jugador.dispose();
+        this.debugColisiones.dispose();
     }
 }
