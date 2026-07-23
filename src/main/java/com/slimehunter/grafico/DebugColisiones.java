@@ -2,6 +2,7 @@ package com.slimehunter.grafico;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 
 import com.slimehunter.entidad.Entidad;
@@ -16,7 +17,8 @@ public class DebugColisiones {
         this.shapeRenderer = new ShapeRenderer();
     }
 
-    public void renderizar(List<Entidad> entidades) {
+    public void renderizar(List<Entidad> entidades, Matrix4 matrizProyeccion) {
+        this.shapeRenderer.setProjectionMatrix(matrizProyeccion);
         this.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         this.shapeRenderer.setColor(Color.RED);
 

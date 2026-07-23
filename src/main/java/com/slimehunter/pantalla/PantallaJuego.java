@@ -7,18 +7,22 @@ import com.badlogic.gdx.graphics.GL20;
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
 import com.slimehunter.entidad.Entidad;
+import com.slimehunter.entidad.EntidadEstatica;
 import com.slimehunter.entidad.Jugador;
+import com.slimehunter.grafico.CamaraJuego;
 import com.slimehunter.grafico.DebugColisiones;
 import com.slimehunter.input.ManejadorEntrada;
-import com.slimehunter.mapa.Suelo;
+import com.slimehunter.mapa.MapaJuego;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PantallaJuego implements Screen {
 
     private final SlimeHunter juego;
     private Jugador jugador;
-    private Suelo suelo;
+    private MapaJuego mapa;
+    private CamaraJuego camara;
     private ManejadorEntrada manejadorEntrada;
     private DebugColisiones debugColisiones;
 
@@ -28,34 +32,37 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void show() {
-        float centroX = Gdx.graphics.getWidth() / 2f;
-        float centroY = Gdx.graphics.getHeight() / 2f;
-
         this.manejadorEntrada = new ManejadorEntrada();
-        this.jugador = new Jugador(centroX, centroY + 200, this.manejadorEntrada);
-        this.suelo = new Suelo(0, 0, Gdx.graphics.getWidth() * 2, Constantes.NIVEL_SUELO);
+
+        this.mapa = new MapaJuego();
+        this.mapa.cargar("mapa-test.tmx");
+
+        this.camara = new CamaraJuego(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        this.jugador = new Jugador(200, 600, this.manejadorEntrada);
+
         this.debugColisiones = new DebugColisiones();
         Gdx.input.setInputProcessor(this.manejadorEntrada);
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(
-            Constantes.COLOR_FONDO_R,
-            Constantes.COLOR_FONDO_G,
-            Constantes.COLOR_FONDO_B,
-            Constantes.COLOR_FONDO_A
-        );
+        Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        this.jugador.actualizar(delta, List.of(this.suelo));
+        this.camara.seguir(this.jugador.getPosicion());
+
+        this.juego.getBatch().setProjectionMatrix(this.camara.getCamara().combined);
+
+        this.jugador.actualizar(delta, this.mapa.obtenerColisiones());
+
+        this.mapa.renderizarColisiones(this.camara.getCamara().combined);
+
+        this.debugColisiones.renderizar(List.of(this.jugador), this.camara.getCamara().combined);
 
         this.juego.getBatch().begin();
-        this.suelo.render(this.juego.getBatch());
         this.jugador.render(this.juego.getBatch());
         this.juego.getBatch().end();
-
-        this.debugColisiones.renderizar(List.of(this.jugador, this.suelo));
     }
 
     @Override
@@ -77,6 +84,7 @@ public class PantallaJuego implements Screen {
     @Override
     public void dispose() {
         this.jugador.dispose();
+        this.mapa.dispose();
         this.debugColisiones.dispose();
     }
 }

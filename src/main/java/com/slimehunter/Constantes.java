@@ -22,8 +22,6 @@ public final class Constantes {
     public static final float JUGADOR_ANCHO_COLISION = 48f;
     public static final float JUGADOR_ALTO_COLISION = 64f;
 
-    public static final float NIVEL_SUELO = 100f;
-
     public static final float DURACION_FRAME_DEFAULT = 0.15f;
 
     public static final float COLOR_FONDO_R = 0.1f;
