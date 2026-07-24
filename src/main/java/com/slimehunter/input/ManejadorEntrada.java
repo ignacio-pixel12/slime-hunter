@@ -8,6 +8,7 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     private boolean izquierdaPresionada;
     private boolean derechaPresionada;
     private boolean espacioPresionado;
+    private boolean atacando;
 
     @Override
     public boolean keyDown(int keycode) {
@@ -48,6 +49,15 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     }
 
     @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        if (button == Input.Buttons.LEFT) {
+            this.atacando = true;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean debeMoverIzquierda() {
         return this.izquierdaPresionada;
     }
@@ -60,5 +70,12 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     @Override
     public boolean debeSaltar() {
         return this.espacioPresionado;
+    }
+
+    @Override
+    public boolean debeAtacar() {
+        boolean resultado = this.atacando;
+        this.atacando = false;
+        return resultado;
     }
 }

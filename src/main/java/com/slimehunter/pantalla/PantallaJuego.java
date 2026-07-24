@@ -2,19 +2,19 @@ package com.slimehunter.pantalla;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
-import com.slimehunter.entidad.Entidad;
-import com.slimehunter.entidad.EntidadEstatica;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
 import com.slimehunter.grafico.DebugColisiones;
 import com.slimehunter.input.ManejadorEntrada;
 import com.slimehunter.mapa.MapaJuego;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PantallaJuego implements Screen {
@@ -25,6 +25,7 @@ public class PantallaJuego implements Screen {
     private CamaraJuego camara;
     private ManejadorEntrada manejadorEntrada;
     private DebugColisiones debugColisiones;
+    private ShapeRenderer shapeRendererAtaque;
 
     public PantallaJuego(SlimeHunter juego) {
         this.juego = juego;
@@ -42,6 +43,7 @@ public class PantallaJuego implements Screen {
         this.jugador = new Jugador(200, 600, this.manejadorEntrada);
 
         this.debugColisiones = new DebugColisiones();
+        this.shapeRendererAtaque = new ShapeRenderer();
         Gdx.input.setInputProcessor(this.manejadorEntrada);
     }
 
@@ -60,9 +62,22 @@ public class PantallaJuego implements Screen {
 
         this.debugColisiones.renderizar(List.of(this.jugador), this.camara.getCamara().combined);
 
+        this.renderHitboxAtaque();
+
         this.juego.getBatch().begin();
         this.jugador.render(this.juego.getBatch());
         this.juego.getBatch().end();
+    }
+
+    private void renderHitboxAtaque() {
+        Rectangle hitbox = this.jugador.obtenerHitboxAtaque();
+        if (hitbox != null) {
+            this.shapeRendererAtaque.setProjectionMatrix(this.camara.getCamara().combined);
+            this.shapeRendererAtaque.begin(ShapeRenderer.ShapeType.Line);
+            this.shapeRendererAtaque.setColor(Color.YELLOW);
+            this.shapeRendererAtaque.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+            this.shapeRendererAtaque.end();
+        }
     }
 
     @Override
@@ -86,5 +101,6 @@ public class PantallaJuego implements Screen {
         this.jugador.dispose();
         this.mapa.dispose();
         this.debugColisiones.dispose();
+        this.shapeRendererAtaque.dispose();
     }
 }
