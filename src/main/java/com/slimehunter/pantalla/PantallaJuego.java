@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 
 import com.slimehunter.Constantes;
@@ -26,6 +27,7 @@ public class PantallaJuego implements Screen {
     private ManejadorEntrada manejadorEntrada;
     private DebugColisiones debugColisiones;
     private ShapeRenderer shapeRendererAtaque;
+    private InterfazHUD hud;
 
     public PantallaJuego(SlimeHunter juego) {
         this.juego = juego;
@@ -44,6 +46,7 @@ public class PantallaJuego implements Screen {
 
         this.debugColisiones = new DebugColisiones();
         this.shapeRendererAtaque = new ShapeRenderer();
+        this.hud = new InterfazHUD();
         Gdx.input.setInputProcessor(this.manejadorEntrada);
     }
 
@@ -54,19 +57,24 @@ public class PantallaJuego implements Screen {
 
         this.camara.seguir(this.jugador.getPosicion());
 
-        this.juego.getBatch().setProjectionMatrix(this.camara.getCamara().combined);
+        Matrix4 matrizMundo = this.camara.getCamara().combined;
+        this.juego.getBatch().setProjectionMatrix(matrizMundo);
 
         this.jugador.actualizar(delta, this.mapa.obtenerColisiones());
 
-        this.mapa.renderizarColisiones(this.camara.getCamara().combined);
+        this.mapa.renderizarColisiones(matrizMundo);
 
-        this.debugColisiones.renderizar(List.of(this.jugador), this.camara.getCamara().combined);
+        this.debugColisiones.renderizar(List.of(this.jugador), matrizMundo);
 
         this.renderHitboxAtaque();
 
         this.juego.getBatch().begin();
         this.jugador.render(this.juego.getBatch());
         this.juego.getBatch().end();
+
+        Matrix4 matrizPantalla = new Matrix4();
+        matrizPantalla.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.hud.renderizar(this.jugador, matrizPantalla);
     }
 
     private void renderHitboxAtaque() {
@@ -102,5 +110,6 @@ public class PantallaJuego implements Screen {
         this.mapa.dispose();
         this.debugColisiones.dispose();
         this.shapeRendererAtaque.dispose();
+        this.hud.dispose();
     }
 }

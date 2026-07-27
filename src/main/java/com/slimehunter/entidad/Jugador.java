@@ -22,9 +22,16 @@ public class Jugador extends EntidadDinamica {
     private boolean atacandoActivo;
     private float cooldownRestante;
 
+    private int vida;
+    private int maxVida;
+    private boolean invulnerable;
+    private float temporizadorInvulnerabilidad;
+    private float tiempoMuerte;
+
     private static final float DURACION_ATAQUE = 0.64f;
     private static final float COOLDOWN_ATAQUE = 0.5f;
     private static final float ANCHO_ATAQUE = 80f;
+    private static final float DURACION_MUERTE = 0.44f;
 
     public Jugador(float x, float y, Entrada entrada) {
         super(obtenerFrameInicial(), x, y,
@@ -37,6 +44,12 @@ public class Jugador extends EntidadDinamica {
         this.tiempoAtaque = 0f;
         this.atacandoActivo = false;
         this.cooldownRestante = 0f;
+
+        this.vida = Constantes.JUGADOR_VIDA_MAXIMA;
+        this.maxVida = Constantes.JUGADOR_VIDA_MAXIMA;
+        this.invulnerable = false;
+        this.temporizadorInvulnerabilidad = 0f;
+        this.tiempoMuerte = 0f;
 
         setSize(this.gestorSprites.getAnchoFrame() * 3f, this.gestorSprites.getAltoFrame() * 3f);
         setOriginCenter();
@@ -56,28 +69,44 @@ public class Jugador extends EntidadDinamica {
         t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.SALTANDO);
         t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.CAYENDO);
         t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.ATACANDO);
+        t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.MURIENDO);
 
         t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.INACTIVO);
         t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.SALTANDO);
         t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.CAYENDO);
         t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.ATACANDO);
+        t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.MURIENDO);
 
         t.registrarTransicion(EstadoAnimacion.SALTANDO, EstadoAnimacion.CAYENDO);
         t.registrarTransicion(EstadoAnimacion.SALTANDO, EstadoAnimacion.ATACANDO);
+        t.registrarTransicion(EstadoAnimacion.SALTANDO, EstadoAnimacion.MURIENDO);
 
         t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.INACTIVO);
         t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.CAMINANDO);
         t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.ATACANDO);
+        t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.MURIENDO);
 
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.INACTIVO);
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.CAMINANDO);
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.SALTANDO);
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.CAYENDO);
+        t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.MURIENDO);
     }
 
     @Override
     protected void actualizarEstado(float delta) {
         this.tiempoAnimacion += delta;
+
+        if (this.invulnerable) {
+            this.temporizadorInvulnerabilidad -= delta;
+            if (this.temporizadorInvulnerabilidad <= 0) {
+                this.invulnerable = false;
+                setAlpha(1f);
+            } else {
+                float alpha = ((int)(this.temporizadorInvulnerabilidad * 10) % 2 == 0) ? 1f : 0.3f;
+                setAlpha(alpha);
+            }
+        }
 
         if (this.cooldownRestante > 0) {
             this.cooldownRestante -= delta;
@@ -90,12 +119,13 @@ public class Jugador extends EntidadDinamica {
             case SALTANDO: this.updateSaltando(delta); break;
             case CAYENDO: this.updateCayendo(delta); break;
             case ATACANDO: this.updateAtacando(delta); break;
+            case MURIENDO: this.updateMuerto(delta); break;
             default: break;
         }
 
         String nombre = this.getNombreAnimacion(estado);
         if (this.gestorSprites.existeAnimacion(nombre)) {
-            if (estado == EstadoAnimacion.ATACANDO) {
+            if (estado == EstadoAnimacion.ATACANDO || estado == EstadoAnimacion.MURIENDO) {
                 this.setRegion(this.gestorSprites.obtenerFrameSinLoop(nombre, this.tiempoAnimacion));
             } else {
                 this.setRegion(this.gestorSprites.obtenerFrame(nombre, this.tiempoAnimacion));
@@ -217,11 +247,49 @@ public class Jugador extends EntidadDinamica {
         }
     }
 
+    private void updateMuerto(float delta) {
+        this.tiempoMuerte += delta;
+        if (this.tiempoMuerte >= DURACION_MUERTE) {
+            this.reiniciar();
+        }
+    }
+
     private void iniciarAtaque() {
         this.getTablaEstados().cambiarEstado(EstadoAnimacion.ATACANDO);
         this.tiempoAtaque = 0;
         this.tiempoAnimacion = 0;
         this.cooldownRestante = COOLDOWN_ATAQUE;
+    }
+
+    public void recibirDano(int cantidad) {
+        if (this.invulnerable) return;
+        if (this.estaMuerto()) return;
+
+        this.vida -= cantidad;
+        if (this.vida < 0) this.vida = 0;
+
+        this.invulnerable = true;
+        this.temporizadorInvulnerabilidad = Constantes.DURACION_INVULNERABILIDAD;
+
+        if (this.vida <= 0) {
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.MURIENDO);
+            this.tiempoMuerte = 0;
+            this.tiempoAnimacion = 0;
+            this.detener();
+        }
+    }
+
+    public void reiniciar() {
+        this.vida = this.maxVida;
+        this.posicion.x = 200;
+        this.posicion.y = 600;
+        this.invulnerable = false;
+        this.temporizadorInvulnerabilidad = 0f;
+        this.tiempoMuerte = 0f;
+        setAlpha(1f);
+        this.detener();
+        this.velocidad.y = 0;
+        this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);
     }
 
     public Rectangle obtenerHitboxAtaque() {
@@ -241,6 +309,22 @@ public class Jugador extends EntidadDinamica {
 
     public boolean estaAtacando() {
         return this.atacandoActivo;
+    }
+
+    public boolean estaMuerto() {
+        return this.vida <= 0;
+    }
+
+    public boolean esInvulnerable() {
+        return this.invulnerable;
+    }
+
+    public int getVida() {
+        return this.vida;
+    }
+
+    public int getMaxVida() {
+        return this.maxVida;
     }
 
     private String getNombreAnimacion(EstadoAnimacion estado) {
