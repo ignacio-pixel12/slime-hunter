@@ -10,12 +10,14 @@ import com.badlogic.gdx.math.Rectangle;
 
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
+import com.slimehunter.entidad.Enemigo;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
 import com.slimehunter.grafico.DebugColisiones;
 import com.slimehunter.input.ManejadorEntrada;
 import com.slimehunter.mapa.MapaJuego;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PantallaJuego implements Screen {
@@ -28,6 +30,7 @@ public class PantallaJuego implements Screen {
     private DebugColisiones debugColisiones;
     private ShapeRenderer shapeRendererAtaque;
     private InterfazHUD hud;
+    private List<Enemigo> enemigos;
 
     public PantallaJuego(SlimeHunter juego) {
         this.juego = juego;
@@ -43,6 +46,9 @@ public class PantallaJuego implements Screen {
         this.camara = new CamaraJuego(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         this.jugador = new Jugador(200, 600, this.manejadorEntrada);
+
+        this.enemigos = new ArrayList<>();
+        this.enemigos.add(new Enemigo(500, 600, 400, 700));
 
         this.debugColisiones = new DebugColisiones();
         this.shapeRendererAtaque = new ShapeRenderer();
@@ -62,6 +68,25 @@ public class PantallaJuego implements Screen {
 
         this.jugador.actualizar(delta, this.mapa.obtenerColisiones());
 
+        for (Enemigo enemigo : this.enemigos) {
+            enemigo.actualizar(delta, this.mapa.obtenerColisiones());
+        }
+
+        Rectangle hitboxAtaque = this.jugador.obtenerHitboxAtaque();
+        if (hitboxAtaque != null) {
+            for (Enemigo enemigo : this.enemigos) {
+                if (!enemigo.estaMuerto() && hitboxAtaque.overlaps(enemigo.obtenerLimites())) {
+                    enemigo.recibirDano(1);
+                }
+            }
+        }
+
+        for (Enemigo enemigo : this.enemigos) {
+            if (!enemigo.estaMuerto() && this.jugador.obtenerLimites().overlaps(enemigo.obtenerLimites())) {
+                this.jugador.recibirDano(Constantes.SLIME_DANO);
+            }
+        }
+
         this.mapa.renderizarColisiones(matrizMundo);
 
         this.debugColisiones.renderizar(List.of(this.jugador), matrizMundo);
@@ -70,11 +95,16 @@ public class PantallaJuego implements Screen {
 
         this.juego.getBatch().begin();
         this.jugador.render(this.juego.getBatch());
+        for (Enemigo enemigo : this.enemigos) {
+            enemigo.render(this.juego.getBatch());
+        }
         this.juego.getBatch().end();
 
         Matrix4 matrizPantalla = new Matrix4();
         matrizPantalla.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.hud.renderizar(this.jugador, matrizPantalla);
+
+        this.enemigos.removeIf(Enemigo::debeEliminar);
     }
 
     private void renderHitboxAtaque() {
@@ -111,5 +141,8 @@ public class PantallaJuego implements Screen {
         this.debugColisiones.dispose();
         this.shapeRendererAtaque.dispose();
         this.hud.dispose();
+        for (Enemigo enemigo : this.enemigos) {
+            enemigo.dispose();
+        }
     }
 }
