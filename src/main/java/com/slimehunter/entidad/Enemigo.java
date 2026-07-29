@@ -102,7 +102,8 @@ public class Enemigo extends EntidadDinamica {
 		float anchoSprite = getWidth() * getScaleX();
 		float altoSprite = getHeight() * getScaleY();
 		float offsetX = (anchoSprite - this.anchoColision) / 2f;
-		setPosition(this.posicion.x - offsetX, this.posicion.y);
+		float offsetY = 24f;
+		setPosition(this.posicion.x - offsetX, this.posicion.y - offsetY);
 		draw(batch);
 	}
 
