@@ -1,8 +1,9 @@
 package com.slimehunter.entidad;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.slimehunter.Constantes;
+import com.slimehunter.estado.TablaEstados;
+import com.slimehunter.grafico.EstadoAnimacion;
 import com.slimehunter.grafico.GestorSprites;
 
 public class Enemigo extends EntidadDinamica {
@@ -17,6 +18,46 @@ public class Enemigo extends EntidadDinamica {
 	private float limiteDerecho;
 	private boolean yendoDerecha;
 
+	private static final float DURACION_HIT = 0.5f;
+	private float tiempoHit;
+
+	private static GestorSprites gestorCache;
+
+	public Enemigo(float x, float y, float limiteIzq, float limiteDer) {
+		super(obtenerFrameInicial(), x, y, Constantes.SLIME_ANCHO_COLISION, Constantes.SLIME_ALTO_COLISION,
+				Constantes.SLIME_VELOCIDAD, 8f, EstadoAnimacion.values().length, null);
+
+		this.gestorSprites = gestorCache;
+		gestorCache = null;
+		this.tiempoAnimacion = 0f;
+		this.vida = Constantes.SLIME_VIDA_MAXIMA;
+		this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
+		this.muerto = false;
+		this.tiempoMuerte = 0f;
+		this.limiteIzquierdo = limiteIzq;
+		this.limiteDerecho = limiteDer;
+		this.yendoDerecha = true;
+		this.tiempoHit = 0f;
+
+		setSize(64 * Constantes.SLIME_ESCALA, 64 * Constantes.SLIME_ESCALA);
+		setOriginCenter();
+
+		this.registrarTransiciones();
+	}
+
+	private static TextureRegion obtenerFrameInicial() {
+		gestorCache = new GestorSprites("slime1-sheet.png", "slime1-data.json");
+		return gestorCache.obtenerFrameInactivo();
+	}
+
+	private void registrarTransiciones() {
+		TablaEstados t = this.getTablaEstados();
+
+		t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.RECIBIENDO_DANO);
+
+		t.registrarTransicion(EstadoAnimacion.RECIBIENDO_DANO, EstadoAnimacion.CAMINANDO);
+	}
+
 	@Override
 	protected void actualizarEstado(float delta) {
 		if (this.muerto) {
@@ -26,6 +67,17 @@ public class Enemigo extends EntidadDinamica {
 			return;
 		}
 
+		EstadoAnimacion estado = this.getTablaEstados().getEstadoActual();
+		switch (estado) {
+			case CAMINANDO: this.updateCaminando(delta); break;
+			case RECIBIENDO_DANO: this.updateRecibiendoDano(delta); break;
+			default: break;
+		}
+
+		this.voltearSprite(this.yendoDerecha);
+	}
+
+	private void updateCaminando(float delta) {
 		if (this.posicion.x >= this.limiteDerecho) {
 			this.yendoDerecha = false;
 		} else if (this.posicion.x <= this.limiteIzquierdo) {
@@ -40,34 +92,17 @@ public class Enemigo extends EntidadDinamica {
 
 		this.tiempoAnimacion += delta;
 		this.setRegion(this.gestorSprites.obtenerFrame("caminar", this.tiempoAnimacion));
-		this.voltearSprite(this.yendoDerecha);
 	}
 
-	private static GestorSprites gestorCache;
+	private void updateRecibiendoDano(float delta) {
+		this.detener();
+		this.tiempoHit += delta;
+		this.setRegion(this.gestorSprites.obtenerFrameSinLoop("herido", this.tiempoHit));
 
-	public Enemigo(float x, float y, float limiteIzq, float limiteDer) {
-		super(obtenerFrameInicial(), x, y, Constantes.SLIME_ANCHO_COLISION, Constantes.SLIME_ALTO_COLISION,
-				Constantes.SLIME_VELOCIDAD, 8f, 2, null);
-
-		this.gestorSprites = gestorCache;
-		gestorCache = null;
-		this.tiempoAnimacion = 0f;
-		this.vida = Constantes.SLIME_VIDA_MAXIMA;
-		this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
-		this.muerto = false;
-		this.tiempoMuerte = 0f;
-		this.limiteIzquierdo = limiteIzq;
-		this.limiteDerecho = limiteDer;
-		this.yendoDerecha = true;
-
-		setSize(64 * Constantes.SLIME_ESCALA, 64 * Constantes.SLIME_ESCALA);
-		setOriginCenter();
-	}
-
-	private static TextureRegion obtenerFrameInicial() {
-		gestorCache = new GestorSprites("slime1-sheet.png", "slime1-data.json");
-		return gestorCache.obtenerFrameInactivo();
-
+		if (this.tiempoHit >= DURACION_HIT) {
+			this.tiempoHit = 0f;
+			this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
+		}
 	}
 
 	public void recibirDano(int cantidad) {
@@ -78,6 +113,9 @@ public class Enemigo extends EntidadDinamica {
 			this.vida = 0;
 			this.muerto = true;
 			this.detener();
+		} else {
+			this.tiempoHit = 0f;
+			this.getTablaEstados().cambiarEstado(EstadoAnimacion.RECIBIENDO_DANO);
 		}
 	}
 
@@ -95,15 +133,6 @@ public class Enemigo extends EntidadDinamica {
 
 	public int getMaxVida() {
 		return this.maxVida;
-	}
-
-	@Override
-	public void render(SpriteBatch batch) {
-		float anchoSprite = getWidth() * getScaleX();
-		float altoSprite = getHeight() * getScaleY();
-		float offsetX = (anchoSprite - this.anchoColision) / 2f;
-		setPosition(this.posicion.x - offsetX, this.posicion.y);
-		draw(batch);
 	}
 
 	public void dispose() {
