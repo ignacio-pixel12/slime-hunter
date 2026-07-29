@@ -41,8 +41,8 @@ public final class Constantes {
     public static final float HUD_Y = ALTO_VENTANA - HUD_ALTO - 20f;
     
     public static final int SLIME_VIDA_MAXIMA = 3;
-    public static final float SLIME_ANCHO_COLISION = 48f;
-    public static final float SLIME_ALTO_COLISION = 48f;
+    public static final float SLIME_ANCHO_COLISION = 20f;
+    public static final float SLIME_ALTO_COLISION = 13f;
     public static final float SLIME_VELOCIDAD = 50f;
     public static final int SLIME_DANO = 1;
     public static final float SLIME_ESCALA = 2f;

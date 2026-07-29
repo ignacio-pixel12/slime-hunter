@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
 import com.slimehunter.entidad.Enemigo;
+import com.slimehunter.entidad.Entidad;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
 import com.slimehunter.grafico.DebugColisiones;
@@ -89,7 +90,14 @@ public class PantallaJuego implements Screen {
 
         this.mapa.renderizarColisiones(matrizMundo);
 
-        this.debugColisiones.renderizar(List.of(this.jugador), matrizMundo);
+        List<Entidad> entidadesDebug = new ArrayList<>();
+        entidadesDebug.add(this.jugador);
+        for (Enemigo enemigo : this.enemigos) {
+            if (!enemigo.estaMuerto()) {
+                entidadesDebug.add(enemigo);
+            }
+        }
+        this.debugColisiones.renderizar(entidadesDebug, matrizMundo);
 
         this.renderHitboxAtaque();
 
