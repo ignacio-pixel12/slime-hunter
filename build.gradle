@@ -57,6 +57,13 @@ tasks.register('exportarSprites') {
     outputs.dir(carpetaDestino)
 
     doLast {
+        def asepriteFile = file(asepritePath)
+        if (!asepriteFile.exists()) {
+            println "Aseprite no encontrado en ${asepritePath}. Se omiten spritesheets."
+            println "Los spritesheets pre-exportados en src/main/resources/ se utilizarán directamente."
+            return
+        }
+
         carpetaOrigen.listFiles()?.each { archivo ->
             if (archivo.name.endsWith('.aseprite')) {
                 def nombreBase = archivo.name.replace('.aseprite', '')
@@ -88,7 +95,6 @@ tasks.register('exportarSprites') {
 }
 
 tasks.register('run', JavaExec) {
-    dependsOn exportarSprites
     classpath = sourceSets.main.runtimeClasspath
     mainClass.set('com.slimehunter.desktop.Lwjgl3Launcher')
     jvmArgs = [

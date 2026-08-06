@@ -44,7 +44,7 @@ git clone https://github.com/ignacio-pixel12/slime-hunter.git
 cd slime-hunter
 
 # 3. Ejecutar
-.\gradlew.bat lwjgl3:run
+.\gradlew.bat run
 ```
 
 ### Linux / macOS
@@ -57,7 +57,7 @@ git clone https://github.com/ignacio-pixel12/slime-hunter.git
 cd slime-hunter
 
 # 3. Ejecutar
-./gradlew lwjgl3:run
+./gradlew run
 ```
 
 **Nota:** En macOS es posible que necesites dar permisos de ejecución al wrapper la primera vez:
@@ -66,10 +66,28 @@ cd slime-hunter
 chmod +x gradlew
 ```
 
+### Exportar sprites (requiere Aseprite)
+
+Si se instala Aseprite, se puede exportar los spritesheets de forma automática:
+
+```bash
+.\gradlew.bat exportarSprites
+```
+
+**Nota:** Esta tarea busca Aseprite en la ruta de instalación por defecto de Steam en Windows. Si Aseprite no está instalado, la tarea se omite automáticamente y se ejecutan los spritesheets ya exportados en `src/main/resources/`.
+
 ## Documentación
 
 - [Propuesta formal del proyecto (Wiki)](https://github.com/ignacio-pixel12/slime-hunter/wiki/Home)
 
 ## Estado actual
 
-Primera pre-entrega: configuración inicial del proyecto y repositorio.
+Sprint 1 en desarrollo. Implementado:
+
+- Movimiento lateral del jugador con aceleración y fricción
+- Salto con gravedad
+- Colisiones AABB con el escenario (mapas Tiled)
+- Ataque con espada (hitbox activo, cooldown, animación)
+- Sistema de vida, barra de HUD e invulnerabilidad
+- Enemigo patrulla con animaciones y colisiones
+- Tabla de estados para jugador y enemigos
