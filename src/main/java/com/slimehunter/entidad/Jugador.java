@@ -8,18 +8,20 @@ import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.EstadoAnimacion;
+import com.slimehunter.grafico.GestorCajas;
 import com.slimehunter.grafico.GestorSprites;
 import com.slimehunter.input.Entrada;
 
 public class Jugador extends EntidadDinamica {
 
     private static GestorSprites gestorCache;
+    private static GestorCajas gestorCajasCache;
 
     private final GestorSprites gestorSprites;
+    private final GestorCajas gestorCajas;
     private float tiempoAnimacion;
 
     private float tiempoAtaque;
-    private boolean atacandoActivo;
     private float cooldownRestante;
 
     private int vida;
@@ -30,7 +32,6 @@ public class Jugador extends EntidadDinamica {
 
     private static final float DURACION_ATAQUE = 0.64f;
     private static final float COOLDOWN_ATAQUE = 0.5f;
-    private static final float ANCHO_ATAQUE = 80f;
     private static final float DURACION_MUERTE = 0.44f;
 
     public Jugador(float x, float y, Entrada entrada) {
@@ -40,9 +41,10 @@ public class Jugador extends EntidadDinamica {
               EstadoAnimacion.values().length, entrada);
         this.gestorSprites = gestorCache;
         gestorCache = null;
+        this.gestorCajas = gestorCajasCache;
+        gestorCajasCache = null;
         this.tiempoAnimacion = 0f;
         this.tiempoAtaque = 0f;
-        this.atacandoActivo = false;
         this.cooldownRestante = 0f;
 
         this.vida = Constantes.JUGADOR_VIDA_MAXIMA;
@@ -51,7 +53,8 @@ public class Jugador extends EntidadDinamica {
         this.temporizadorInvulnerabilidad = 0f;
         this.tiempoMuerte = 0f;
 
-        setSize(this.gestorSprites.getAnchoFrame() * 3f, this.gestorSprites.getAltoFrame() * 3f);
+        setSize(this.gestorSprites.getAnchoFrame() * Constantes.JUGADOR_ESCALA,
+                this.gestorSprites.getAltoFrame() * Constantes.JUGADOR_ESCALA);
         setOriginCenter();
 
         this.registrarTransiciones();
@@ -59,6 +62,7 @@ public class Jugador extends EntidadDinamica {
 
     private static TextureRegion obtenerFrameInicial() {
         gestorCache = new GestorSprites(Constantes.ARCHIVO_SPRITE_KNIGHT, Constantes.ARCHIVO_DATA_KNIGHT);
+        gestorCajasCache = new GestorCajas(Constantes.ARCHIVO_CAJAS_KNIGHT);
         return gestorCache.obtenerFrameInactivo();
     }
 
@@ -225,11 +229,7 @@ public class Jugador extends EntidadDinamica {
     private void updateAtacando(float delta) {
         this.tiempoAtaque += delta;
 
-        float tiempoNormalizado = this.tiempoAtaque / DURACION_ATAQUE;
-        this.atacandoActivo = (tiempoNormalizado >= 0.25f && tiempoNormalizado <= 0.75f);
-
         if (this.tiempoAtaque >= DURACION_ATAQUE) {
-            this.atacandoActivo = false;
             this.tiempoAtaque = 0;
             if (this.estaEnElSuelo()) {
                 if (Math.abs(this.getVelocidad().x) > 0.5f) {
@@ -293,22 +293,78 @@ public class Jugador extends EntidadDinamica {
     }
 
     public Rectangle obtenerHitboxAtaque() {
-        if (!this.atacandoActivo) return null;
-
-        float altoAtaque = this.altoColision;
-        float xAtaque;
-
-        if (this.getDireccion() == Direccion.DERECHA) {
-            xAtaque = this.posicion.x + this.anchoColision;
-        } else {
-            xAtaque = this.posicion.x - ANCHO_ATAQUE;
+        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HITBOX,
+                this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
+        if (caja == null) {
+            return null;
         }
 
-        return new Rectangle(xAtaque, this.posicion.y, ANCHO_ATAQUE, altoAtaque);
+        Rectangle hitbox = GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
+                this.getEscala(), this.getAltoFrame());
+        if (this.getDireccion() == Direccion.IZQUIERDA) {
+            hitbox = GestorCajas.voltearHorizontalmente(hitbox, this.getXInicioSprite(), this.getAnchoSprite());
+        }
+        return hitbox;
     }
 
-    public boolean estaAtacando() {
-        return this.atacandoActivo;
+    @Override
+    public Rectangle obtenerLimites() {
+        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.COLBOX,
+                this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
+        if (caja == null) {
+            return null;
+        }
+        Rectangle limites = GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
+                this.getEscala(), this.getAltoFrame());
+        if (this.getDireccion() == Direccion.IZQUIERDA) {
+            limites = GestorCajas.voltearHorizontalmente(limites, this.getXInicioSprite(), this.getAnchoSprite());
+        }
+        return limites;
+    }
+
+    @Override
+    public Rectangle obtenerHurtbox() {
+        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HURTBOX,
+                this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
+        if (caja == null) {
+            return null;
+        }
+        Rectangle hurtbox = GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
+                this.getEscala(), this.getAltoFrame());
+        if (this.getDireccion() == Direccion.IZQUIERDA) {
+            hurtbox = GestorCajas.voltearHorizontalmente(hurtbox, this.getXInicioSprite(), this.getAnchoSprite());
+        }
+        return hurtbox;
+    }
+
+    private int getFrameActual() {
+        String nombre = this.getNombreAnimacion(this.getTablaEstados().getEstadoActual());
+        if (!this.gestorSprites.existeAnimacion(nombre)) {
+            return 0;
+        }
+        return this.gestorSprites.obtenerIndiceFrame(nombre, this.tiempoAnimacion);
+    }
+
+    private float getEscala() {
+        return Constantes.JUGADOR_ESCALA;
+    }
+
+    private float getAltoFrame() {
+        return this.gestorSprites.getAltoFrame();
+    }
+
+    private float getAnchoSprite() {
+        return getWidth() * getScaleX();
+    }
+
+    private float getXInicioSprite() {
+        float anchoSprite = getWidth() * getScaleX();
+        return this.posicion.x - (anchoSprite - this.anchoColision) / 2f;
+    }
+
+    private float getYInicioSprite() {
+        float altoSprite = getHeight() * getScaleY();
+        return this.posicion.y - altoSprite / 2f;
     }
 
     public boolean estaMuerto() {

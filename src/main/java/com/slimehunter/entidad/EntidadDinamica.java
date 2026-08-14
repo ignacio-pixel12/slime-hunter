@@ -74,13 +74,22 @@ public abstract class EntidadDinamica extends Entidad {
 
     private boolean colisionaCon(EntidadEstatica estatica) {
         Rectangle miHitbox = obtenerLimites();
+        if (miHitbox == null) {
+            return false;
+        }
         Rectangle hitboxEstatica = estatica.obtenerLimites();
         return miHitbox.overlaps(hitboxEstatica);
     }
 
     private void resolverColision(EntidadEstatica estatica) {
         Rectangle miHitbox = obtenerLimites();
+        if (miHitbox == null) {
+            return;
+        }
         Rectangle hitboxEstatica = estatica.obtenerLimites();
+
+        float dX = miHitbox.x - this.posicion.x;
+        float dY = miHitbox.y - this.posicion.y;
 
         float solapeDerecha = miHitbox.x + miHitbox.width - hitboxEstatica.x;
         float solapeIzquierda = hitboxEstatica.x + hitboxEstatica.width - miHitbox.x;
@@ -91,17 +100,17 @@ public abstract class EntidadDinamica extends Entidad {
                                       Math.min(solapeArriba, solapeAbajo));
 
         if (solapeMinimo == solapeAbajo) {
-            this.posicion.y = hitboxEstatica.y + hitboxEstatica.height;
+            this.posicion.y = hitboxEstatica.y + hitboxEstatica.height - dY;
             this.velocidad.y = 0;
             this.enElSuelo = true;
         } else if (solapeMinimo == solapeArriba) {
-            this.posicion.y = hitboxEstatica.y - this.altoColision;
+            this.posicion.y = hitboxEstatica.y - miHitbox.height - dY;
             this.velocidad.y = 0;
         } else if (solapeMinimo == solapeDerecha) {
-            this.posicion.x = hitboxEstatica.x - this.anchoColision;
+            this.posicion.x = hitboxEstatica.x - miHitbox.width - dX;
             this.velocidad.x = 0;
         } else if (solapeMinimo == solapeIzquierda) {
-            this.posicion.x = hitboxEstatica.x + hitboxEstatica.width;
+            this.posicion.x = hitboxEstatica.x + hitboxEstatica.width - dX;
             this.velocidad.x = 0;
         }
     }

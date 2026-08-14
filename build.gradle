@@ -69,11 +69,15 @@ tasks.register('exportarSprites') {
                 def nombreBase = archivo.name.replace('.aseprite', '')
                 def pngSalida = new File(carpetaDestino, "${nombreBase}-sheet.png")
                 def jsonSalida = new File(carpetaDestino, "${nombreBase}-data.json")
+                def cajasSalida = new File(carpetaDestino, "${nombreBase}-cajas.json")
 
                 println "Exportando: ${archivo.name} -> ${pngSalida.name}, ${jsonSalida.name}"
 
                 def proceso = new ProcessBuilder(
                     asepritePath, '-b',
+                    '--ignore-layer', 'colbox',
+                    '--ignore-layer', 'hitbox',
+                    '--ignore-layer', 'hurtbox',
                     archivo.absolutePath,
                     '--data', jsonSalida.absolutePath,
                     '--sheet', pngSalida.absolutePath,
@@ -88,6 +92,26 @@ tasks.register('exportarSprites') {
                 def codigoSalida = resultado.waitFor()
                 if (codigoSalida != 0) {
                     println "Error exportando ${archivo.name}: ${salida}"
+                }
+
+                def scriptCajas = file('art/aseprite/exportar-cajas.lua')
+                if (scriptCajas.exists()) {
+                    def procesoCajas = new ProcessBuilder(
+                        asepritePath, '-b',
+                        archivo.absolutePath,
+                        '--script-param', "salida=${cajasSalida.absolutePath}",
+                        '-script', scriptCajas.absolutePath
+                    )
+                    procesoCajas.directory(projectDir)
+                    procesoCajas.redirectErrorStream(true)
+                    def resultadoCajas = procesoCajas.start()
+                    def salidaCajas = resultadoCajas.inputStream.text
+                    def codigoCajas = resultadoCajas.waitFor()
+                    if (codigoCajas != 0) {
+                        println "Error exportando cajas de ${archivo.name}: ${salidaCajas}"
+                    } else {
+                        println "Cajas de ${archivo.name} -> ${cajasSalida.name}"
+                    }
                 }
             }
         }

@@ -1,14 +1,17 @@
 package com.slimehunter.entidad;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.EstadoAnimacion;
+import com.slimehunter.grafico.GestorCajas;
 import com.slimehunter.grafico.GestorSprites;
 
 public class Enemigo extends EntidadDinamica {
 
 	private GestorSprites gestorSprites;
+	private GestorCajas gestorCajas;
 	private float tiempoAnimacion;
 	private int vida;
 	private int maxVida;
@@ -22,13 +25,16 @@ public class Enemigo extends EntidadDinamica {
 	private float tiempoHit;
 
 	private static GestorSprites gestorCache;
+	private static GestorCajas gestorCajasCache;
 
 	public Enemigo(float x, float y, float limiteIzq, float limiteDer) {
 		super(obtenerFrameInicial(), x, y, Constantes.SLIME_ANCHO_COLISION, Constantes.SLIME_ALTO_COLISION,
 				Constantes.SLIME_VELOCIDAD, 8f, EstadoAnimacion.values().length, null);
 
 		this.gestorSprites = gestorCache;
+		this.gestorCajas = gestorCajasCache;
 		gestorCache = null;
+		gestorCajasCache = null;
 		this.tiempoAnimacion = 0f;
 		this.vida = Constantes.SLIME_VIDA_MAXIMA;
 		this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
@@ -47,6 +53,7 @@ public class Enemigo extends EntidadDinamica {
 
 	private static TextureRegion obtenerFrameInicial() {
 		gestorCache = new GestorSprites("slime1-sheet.png", "slime1-data.json");
+		gestorCajasCache = new GestorCajas("slime1-cajas.json");
 		return gestorCache.obtenerFrameInactivo();
 	}
 
@@ -97,7 +104,7 @@ public class Enemigo extends EntidadDinamica {
 	private void updateRecibiendoDano(float delta) {
 		this.detener();
 		this.tiempoHit += delta;
-		this.setRegion(this.gestorSprites.obtenerFrameSinLoop("herido", this.tiempoHit));
+		this.setRegion(this.gestorSprites.obtenerFrameSinLoop("hit", this.tiempoHit));
 
 		if (this.tiempoHit >= DURACION_HIT) {
 			this.tiempoHit = 0f;
@@ -134,6 +141,60 @@ public class Enemigo extends EntidadDinamica {
 	public int getMaxVida() {
 		return this.maxVida;
 	}
+
+	private String getNombreAnimacion() {
+		return this.muerto ? "muerte" :
+			this.getTablaEstados().getEstadoActual() == EstadoAnimacion.RECIBIENDO_DANO ? "hit" : "caminar";
+	}
+
+	private int getFrameActual() {
+		String nombre = this.getNombreAnimacion();
+		if (!this.gestorSprites.existeAnimacion(nombre)) {
+			return 0;
+		}
+		float tiempo = this.getTablaEstados().getEstadoActual() == EstadoAnimacion.RECIBIENDO_DANO
+				? this.tiempoHit : this.tiempoAnimacion;
+		return this.gestorSprites.obtenerIndiceFrame(nombre, tiempo);
+	}
+
+	private float getEscala() {
+		return Constantes.SLIME_ESCALA;
+	}
+
+	private float getAltoFrame() {
+		return this.gestorSprites.getAltoFrame();
+	}
+
+	private float getXInicioSprite() {
+		float anchoSprite = getWidth() * getScaleX();
+		return this.posicion.x - (anchoSprite - this.anchoColision) / 2f;
+	}
+
+	private float getYInicioSprite() {
+		float altoSprite = getHeight() * getScaleY();
+		return this.posicion.y - altoSprite / 2f;
+	}
+
+    public Rectangle obtenerHurtbox() {
+        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HURTBOX,
+                this.getNombreAnimacion(), this.getFrameActual());
+        if (caja == null) {
+            return null;
+        }
+        return GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
+                this.getEscala(), this.getAltoFrame());
+    }
+
+    @Override
+    public Rectangle obtenerLimites() {
+        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.COLBOX,
+                this.getNombreAnimacion(), this.getFrameActual());
+        if (caja == null) {
+            return null;
+        }
+        return GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
+                this.getEscala(), this.getAltoFrame());
+    }
 
 	public void dispose() {
 		this.gestorSprites.dispose();

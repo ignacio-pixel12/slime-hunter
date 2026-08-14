@@ -11,6 +11,10 @@ import java.util.List;
 
 public class DebugColisiones {
 
+    private static final Color COLOR_COLBOX = Color.GRAY;
+    private static final Color COLOR_HITBOX = Color.RED;
+    private static final Color COLOR_HURTBOX = Color.BLUE;
+
     private final ShapeRenderer shapeRenderer;
 
     public DebugColisiones() {
@@ -19,15 +23,32 @@ public class DebugColisiones {
 
     public void renderizar(List<Entidad> entidades, Matrix4 matrizProyeccion) {
         this.shapeRenderer.setProjectionMatrix(matrizProyeccion);
+
         this.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        this.shapeRenderer.setColor(Color.RED);
 
         for (Entidad entidad : entidades) {
-            Rectangle limites = entidad.obtenerLimites();
-            this.shapeRenderer.rect(limites.x, limites.y, limites.width, limites.height);
+            Rectangle colbox = entidad.obtenerLimites();
+            if (colbox != null) {
+                this.renderizarRectangulo(colbox, COLOR_COLBOX);
+            }
+
+            Rectangle hurtbox = entidad.obtenerHurtbox();
+            if (hurtbox != null) {
+                this.renderizarRectangulo(hurtbox, COLOR_HURTBOX);
+            }
+
+            Rectangle hitbox = entidad.obtenerHitboxAtaque();
+            if (hitbox != null) {
+                this.renderizarRectangulo(hitbox, COLOR_HITBOX);
+            }
         }
 
         this.shapeRenderer.end();
+    }
+
+    private void renderizarRectangulo(Rectangle rectangulo, Color color) {
+        this.shapeRenderer.setColor(color);
+        this.shapeRenderer.rect(rectangulo.x, rectangulo.y, rectangulo.width, rectangulo.height);
     }
 
     public void dispose() {

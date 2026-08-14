@@ -3,12 +3,15 @@ package com.slimehunter.input;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
+import com.slimehunter.Constantes;
+
 public class ManejadorEntrada extends InputAdapter implements Entrada {
 
     private boolean izquierdaPresionada;
     private boolean derechaPresionada;
     private boolean espacioPresionado;
     private boolean atacando;
+    private boolean mostrarDebug = true;
 
     @Override
     public boolean keyDown(int keycode) {
@@ -23,6 +26,9 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
                 return true;
             case Input.Keys.SPACE:
                 this.espacioPresionado = true;
+                return true;
+            case Input.Keys.F3:
+                this.mostrarDebug = !this.mostrarDebug;
                 return true;
             default:
                 return false;
@@ -77,5 +83,10 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
         boolean resultado = this.atacando;
         this.atacando = false;
         return resultado;
+    }
+
+    @Override
+    public boolean debeMostrarDebug() {
+        return Constantes.DEBUG_CAJAS && this.mostrarDebug;
     }
 }

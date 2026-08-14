@@ -31,6 +31,14 @@ public abstract class Entidad extends Sprite {
         return new Rectangle(this.posicion.x, this.posicion.y, this.anchoColision, this.altoColision);
     }
 
+    public Rectangle obtenerHurtbox() {
+        return null;
+    }
+
+    public Rectangle obtenerHitboxAtaque() {
+        return null;
+    }
+
     public Vector2 getPosicion() {
         return this.posicion;
     }

@@ -166,6 +166,10 @@ public class GestorSprites {
         return frames[0][0];
     }
 
+    public int obtenerIndiceFrame(String nombreAnimacion, float tiempo) {
+        return obtenerAnimacion(nombreAnimacion).getKeyFrameIndex(tiempo);
+    }
+
     public boolean existeAnimacion(String nombre) {
         return animaciones.containsKey(nombre);
     }

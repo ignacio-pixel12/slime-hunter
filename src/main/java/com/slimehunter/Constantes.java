@@ -31,9 +31,14 @@ public final class Constantes {
 
     public static final String ARCHIVO_SPRITE_KNIGHT = "knight-sheet.png";
     public static final String ARCHIVO_DATA_KNIGHT = "knight-data.json";
+    public static final String ARCHIVO_CAJAS_KNIGHT = "knight-cajas.json";
+
+    public static final float JUGADOR_ESCALA = 3f;
 
     public static final int JUGADOR_VIDA_MAXIMA = 5;
     public static final float DURACION_INVULNERABILIDAD = 1.0f;
+
+    public static final boolean DEBUG_CAJAS = true;
 
     public static final float HUD_X = 20f;
     public static final float HUD_ANCHO = 200f;
