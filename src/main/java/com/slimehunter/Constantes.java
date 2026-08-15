@@ -19,6 +19,13 @@ public final class Constantes {
     public static final float ACELERACION_JUGADOR = 1800f;
     public static final float FRICCION_JUGADOR = 8f;
 
+    public static final float INICIO_JUGADOR_X = 100f;
+    public static final float INICIO_JUGADOR_Y = 1400f;
+
+    public static final float TOLERANCIA_PLATAFORMA = 4f;
+
+    public static final String ARCHIVO_MAPA = "mapa/diseño.tmx";
+
     public static final float JUGADOR_ANCHO_COLISION = 48f;
     public static final float JUGADOR_ALTO_COLISION = 64f;
 

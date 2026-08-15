@@ -118,6 +118,36 @@ tasks.register('exportarSprites') {
     }
 }
 
+tasks.register('sincronizarMapa') {
+    description = 'Copia el mapa y sus tilesets desde art/tiled a src/main/resources/mapa'
+    group = 'art'
+
+    def origen = file('art/tiled')
+    def destino = file('src/main/resources/mapa')
+
+    inputs.dir(origen)
+    outputs.dir(destino)
+
+    doLast {
+        delete(destino)
+        copy {
+            from(origen) {
+                include 'diseño.tmx'
+                include 'Tilesetv3.tsx'
+                include 'Tilesetv3.png'
+                include 'castelvania.tsx'
+                include 'Tiles.png'
+                include 'bosque.tsx'
+                include 'Pixel_Woods_Tileset.png'
+                include 'tileset bosque.tsx'
+                include 'tileset.png'
+            }
+            into(destino)
+        }
+        println "Mapa sincronizado -> ${destino.absolutePath}"
+    }
+}
+
 tasks.register('run', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass.set('com.slimehunter.desktop.Lwjgl3Launcher')

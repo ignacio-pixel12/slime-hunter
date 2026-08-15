@@ -36,7 +36,7 @@ public abstract class EntidadDinamica extends Entidad {
         this.entrada = entrada;
     }
 
-    public void actualizar(float delta, List<EntidadEstatica> entidadesEstaticas) {
+    public void actualizar(float delta, List<EntidadEstatica> entidadesEstaticas, List<EntidadEstatica> plataformas) {
         this.aceleracion.x = 0;
 
         actualizarEstado(delta);
@@ -68,6 +68,11 @@ public abstract class EntidadDinamica extends Entidad {
         for (EntidadEstatica estatica : entidadesEstaticas) {
             if (this.colisionaCon(estatica)) {
                 this.resolverColision(estatica);
+            }
+        }
+        for (EntidadEstatica plataforma : plataformas) {
+            if (this.colisionaCon(plataforma)) {
+                this.resolverPlataforma(plataforma, delta);
             }
         }
     }
@@ -113,6 +118,29 @@ public abstract class EntidadDinamica extends Entidad {
             this.posicion.x = hitboxEstatica.x + hitboxEstatica.width - dX;
             this.velocidad.x = 0;
         }
+    }
+
+    private void resolverPlataforma(EntidadEstatica plataforma, float delta) {
+        Rectangle miHitbox = obtenerLimites();
+        if (miHitbox == null) {
+            return;
+        }
+        Rectangle hitboxPlataforma = plataforma.obtenerLimites();
+
+        float dY = miHitbox.y - this.posicion.y;
+        float topePlataforma = hitboxPlataforma.y + hitboxPlataforma.height;
+        float pieAnterior = miHitbox.y - this.velocidad.y * delta;
+
+        if (this.velocidad.y > 0) {
+            return;
+        }
+        if (pieAnterior < topePlataforma - Constantes.TOLERANCIA_PLATAFORMA) {
+            return;
+        }
+
+        this.posicion.y = topePlataforma - dY;
+        this.velocidad.y = 0;
+        this.enElSuelo = true;
     }
 
     protected abstract void actualizarEstado(float delta);

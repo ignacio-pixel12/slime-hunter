@@ -39,14 +39,21 @@ public class PantallaJuego implements Screen {
         this.manejadorEntrada = new ManejadorEntrada();
 
         this.mapa = new MapaJuego();
-        this.mapa.cargar("mapa-test.tmx");
+        this.mapa.cargar(Constantes.ARCHIVO_MAPA);
 
         this.camara = new CamaraJuego(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        this.jugador = new Jugador(200, 600, this.manejadorEntrada);
+        com.badlogic.gdx.math.Vector2 spawn = this.mapa.obtenerSpawn();
+        float spawnX = spawn != null ? spawn.x : Constantes.INICIO_JUGADOR_X;
+        float spawnY = spawn != null ? spawn.y : Constantes.INICIO_JUGADOR_Y;
+
+        this.jugador = new Jugador(spawnX, spawnY, this.manejadorEntrada);
+        this.jugador.setPuntoAparicion(spawnX, spawnY);
 
         this.enemigos = new ArrayList<>();
-        this.enemigos.add(new Enemigo(500, 600, 400, 700));
+        this.enemigos.add(new Enemigo(
+            spawnX + 200, spawnY,
+            spawnX + 100, spawnX + 500));
 
         this.debugColisiones = new DebugColisiones();
         this.hud = new InterfazHUD();
@@ -63,10 +70,10 @@ public class PantallaJuego implements Screen {
         Matrix4 matrizMundo = this.camara.getCamara().combined;
         this.juego.getBatch().setProjectionMatrix(matrizMundo);
 
-        this.jugador.actualizar(delta, this.mapa.obtenerColisiones());
+        this.jugador.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
 
         for (Enemigo enemigo : this.enemigos) {
-            enemigo.actualizar(delta, this.mapa.obtenerColisiones());
+            enemigo.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
         }
 
         Rectangle hitboxAtaque = this.jugador.obtenerHitboxAtaque();
@@ -95,9 +102,10 @@ public class PantallaJuego implements Screen {
             }
         }
 
-        this.mapa.renderizarColisiones(matrizMundo);
+        this.mapa.render(this.camara.getCamara());
 
         if (this.manejadorEntrada.debeMostrarDebug()) {
+            this.mapa.renderizarColisiones(matrizMundo);
             List<Entidad> entidadesDebug = new ArrayList<>();
             entidadesDebug.add(this.jugador);
             for (Enemigo enemigo : this.enemigos) {

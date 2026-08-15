@@ -3,6 +3,7 @@ package com.slimehunter.entidad;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
@@ -29,6 +30,7 @@ public class Jugador extends EntidadDinamica {
     private boolean invulnerable;
     private float temporizadorInvulnerabilidad;
     private float tiempoMuerte;
+    private Vector2 puntoAparicion;
 
     private static final float DURACION_ATAQUE = 0.64f;
     private static final float COOLDOWN_ATAQUE = 0.5f;
@@ -52,6 +54,7 @@ public class Jugador extends EntidadDinamica {
         this.invulnerable = false;
         this.temporizadorInvulnerabilidad = 0f;
         this.tiempoMuerte = 0f;
+        this.puntoAparicion = new Vector2(Constantes.INICIO_JUGADOR_X, Constantes.INICIO_JUGADOR_Y);
 
         setSize(this.gestorSprites.getAnchoFrame() * Constantes.JUGADOR_ESCALA,
                 this.gestorSprites.getAltoFrame() * Constantes.JUGADOR_ESCALA);
@@ -281,8 +284,8 @@ public class Jugador extends EntidadDinamica {
 
     public void reiniciar() {
         this.vida = this.maxVida;
-        this.posicion.x = 200;
-        this.posicion.y = 600;
+        this.posicion.x = this.puntoAparicion.x;
+        this.posicion.y = this.puntoAparicion.y;
         this.invulnerable = false;
         this.temporizadorInvulnerabilidad = 0f;
         this.tiempoMuerte = 0f;
@@ -369,6 +372,10 @@ public class Jugador extends EntidadDinamica {
 
     public boolean estaMuerto() {
         return this.vida <= 0;
+    }
+
+    public void setPuntoAparicion(float x, float y) {
+        this.puntoAparicion.set(x, y);
     }
 
     public boolean esInvulnerable() {
