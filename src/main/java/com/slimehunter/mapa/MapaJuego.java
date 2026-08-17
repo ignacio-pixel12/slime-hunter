@@ -59,12 +59,26 @@ public class MapaJuego {
             MapObjects objetos = capa.getObjects();
             for (MapObject objeto : objetos) {
                 if ("spawn".equals(objeto.getName()) && objeto instanceof RectangleMapObject) {
-                    Rectangle rect = ((RectangleMapObject) objeto).getRectangle();
-                    this.spawn = new Vector2(rect.x + rect.width / 2f, rect.y + rect.height);
+                    this.spawn = obtenerCentroSpawn((RectangleMapObject) objeto);
                     return;
                 }
             }
         }
+
+        com.badlogic.gdx.maps.MapLayer capaSpawn = this.mapa.getLayers().get("spawn");
+        if (capaSpawn != null) {
+            for (MapObject objeto : capaSpawn.getObjects()) {
+                if (objeto instanceof RectangleMapObject) {
+                    this.spawn = obtenerCentroSpawn((RectangleMapObject) objeto);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static Vector2 obtenerCentroSpawn(RectangleMapObject objeto) {
+        Rectangle rect = objeto.getRectangle();
+        return new Vector2(rect.x + rect.width / 2f, rect.y + rect.height);
     }
 
     public Vector2 obtenerSpawn() {

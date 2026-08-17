@@ -11,7 +11,7 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     private boolean derechaPresionada;
     private boolean espacioPresionado;
     private boolean atacando;
-    private boolean mostrarDebug = true;
+    private boolean mostrarDebug = false;
 
     @Override
     public boolean keyDown(int keycode) {

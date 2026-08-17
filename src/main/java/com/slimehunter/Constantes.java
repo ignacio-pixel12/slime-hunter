@@ -12,7 +12,7 @@ public final class Constantes {
 
     public static final float VELOCIDAD_JUGADOR = 200f;
 
-    public static final float FUERZA_SALTO = 500f;
+    public static final float FUERZA_SALTO = 350f;
     public static final float GRAVEDAD = 980f;
     public static final float FRICCION_AIRE = 3f;
 
@@ -40,7 +40,7 @@ public final class Constantes {
     public static final String ARCHIVO_DATA_KNIGHT = "knight-data.json";
     public static final String ARCHIVO_CAJAS_KNIGHT = "knight-cajas.json";
 
-    public static final float JUGADOR_ESCALA = 3f;
+    public static final float JUGADOR_ESCALA = 1f;
 
     public static final int JUGADOR_VIDA_MAXIMA = 5;
     public static final float DURACION_INVULNERABILIDAD = 1.0f;
