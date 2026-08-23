@@ -201,6 +201,12 @@ public class Jugador extends EntidadDinamica {
             this.iniciarAtaque();
         }
 
+        if (e.debeMoverIzquierda()) {
+            this.mover(-Constantes.ACELERACION_JUGADOR * 0.5f);
+        } else if (e.debeMoverDerecha()) {
+            this.mover(Constantes.ACELERACION_JUGADOR * 0.5f);
+        }
+
         if (this.getVelocidad().y < 0) {
             this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAYENDO);
         }
@@ -216,12 +222,16 @@ public class Jugador extends EntidadDinamica {
             this.iniciarAtaque();
         }
 
+        if (e.debeMoverIzquierda()) {
+            this.mover(-Constantes.ACELERACION_JUGADOR * 0.5f);
+        } else if (e.debeMoverDerecha()) {
+            this.mover(Constantes.ACELERACION_JUGADOR * 0.5f);
+        }
+
         if (this.estaEnElSuelo()) {
             if (e.debeMoverIzquierda()) {
-                this.mover(-Constantes.ACELERACION_JUGADOR);
                 this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
             } else if (e.debeMoverDerecha()) {
-                this.mover(Constantes.ACELERACION_JUGADOR);
                 this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
             } else {
                 this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);

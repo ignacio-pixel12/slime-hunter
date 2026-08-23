@@ -10,6 +10,7 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     private boolean izquierdaPresionada;
     private boolean derechaPresionada;
     private boolean espacioPresionado;
+    private boolean bajandoPresionado;
     private boolean atacando;
     private boolean mostrarDebug = false;
 
@@ -26,6 +27,10 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
                 return true;
             case Input.Keys.SPACE:
                 this.espacioPresionado = true;
+                return true;
+            case Input.Keys.S:
+            case Input.Keys.DOWN:
+                this.bajandoPresionado = true;
                 return true;
             case Input.Keys.F3:
                 this.mostrarDebug = !this.mostrarDebug;
@@ -48,6 +53,10 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
                 return true;
             case Input.Keys.SPACE:
                 this.espacioPresionado = false;
+                return true;
+            case Input.Keys.S:
+            case Input.Keys.DOWN:
+                this.bajandoPresionado = false;
                 return true;
             default:
                 return false;
@@ -76,6 +85,11 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
     @Override
     public boolean debeSaltar() {
         return this.espacioPresionado;
+    }
+
+    @Override
+    public boolean debeBajar() {
+        return this.bajandoPresionado;
     }
 
     @Override

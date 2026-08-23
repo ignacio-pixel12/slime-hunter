@@ -2,6 +2,7 @@ package com.slimehunter.entidad;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -56,6 +57,8 @@ public abstract class EntidadDinamica extends Entidad {
                 this.velocidad.x = 0;
             }
         } else {
+            this.velocidad.x = MathUtils.clamp(
+                this.velocidad.x, -Constantes.VELOCIDAD_JUGADOR, Constantes.VELOCIDAD_JUGADOR);
             if (this.friccion.y > 0) {
                 this.velocidad.y *= (1 - this.friccion.y * delta);
             }
@@ -70,7 +73,11 @@ public abstract class EntidadDinamica extends Entidad {
                 this.resolverColision(estatica);
             }
         }
+        boolean bajando = this.entrada != null && this.entrada.debeBajar();
         for (EntidadEstatica plataforma : plataformas) {
+            if (bajando) {
+                continue;
+            }
             if (this.colisionaCon(plataforma)) {
                 this.resolverPlataforma(plataforma, delta);
             }

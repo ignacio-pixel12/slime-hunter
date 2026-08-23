@@ -132,6 +132,7 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        this.camara.redimensionar(width, height);
     }
 
     @Override

@@ -20,6 +20,9 @@ public class InterfazHUD {
     public void renderizar(Jugador jugador, Matrix4 matrixProjecion) {
         float porcentaje = Math.max(0, (float) jugador.getVida() / jugador.getMaxVida());
 
+        float hudX = Constantes.HUD_X;
+        float hudY = Gdx.graphics.getHeight() - Constantes.HUD_ALTO - 20f;
+
         this.shapeRenderer.setProjectionMatrix(matrixProjecion);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -27,20 +30,20 @@ public class InterfazHUD {
         this.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         this.shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
-        this.shapeRenderer.rect(Constantes.HUD_X, Constantes.HUD_Y,
+        this.shapeRenderer.rect(hudX, hudY,
                                 Constantes.HUD_ANCHO, Constantes.HUD_ALTO);
 
         float r = 1f - porcentaje;
         float g = porcentaje;
         this.shapeRenderer.setColor(r, g, 0f, 1f);
-        this.shapeRenderer.rect(Constantes.HUD_X, Constantes.HUD_Y,
+        this.shapeRenderer.rect(hudX, hudY,
                                 Constantes.HUD_ANCHO * porcentaje, Constantes.HUD_ALTO);
 
         this.shapeRenderer.end();
 
         this.shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         this.shapeRenderer.setColor(Color.WHITE);
-        this.shapeRenderer.rect(Constantes.HUD_X, Constantes.HUD_Y,
+        this.shapeRenderer.rect(hudX, hudY,
                                 Constantes.HUD_ANCHO, Constantes.HUD_ALTO);
         this.shapeRenderer.end();
     }

@@ -4,6 +4,7 @@ public interface Entrada {
     boolean debeMoverIzquierda();
     boolean debeMoverDerecha();
     boolean debeSaltar();
+    boolean debeBajar();
     boolean debeAtacar();
     boolean debeMostrarDebug();
 }
