@@ -3,10 +3,13 @@ package com.slimehunter.grafico;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class CamaraJuego {
 
 	private final OrthographicCamera camara;
+	private final Viewport viewport;
 	private float anchoVista;
 	private float altoVista;
 	private float limiteIzquierdo;
@@ -19,6 +22,7 @@ public class CamaraJuego {
 		this.altoVista = altoPantalla;
 		this.camara = new OrthographicCamera(anchoPantalla, altoPantalla);
 		this.camara.zoom = 1f / 3f;
+		this.viewport = new FitViewport(anchoPantalla, altoPantalla, this.camara);
 		this.camara.position.set(anchoPantalla / 2f, altoPantalla / 2f, 0);
 		this.limiteIzquierdo = 0;
 		this.limiteDerecho = Float.MAX_VALUE;
@@ -53,14 +57,14 @@ public class CamaraJuego {
 	}
 
 	public void redimensionar(int ancho, int alto) {
-		this.anchoVista = ancho;
-		this.altoVista = alto;
-		this.camara.viewportWidth = ancho;
-		this.camara.viewportHeight = alto;
-		this.camara.update();
+		this.viewport.update(ancho, alto);
 	}
 
 	public OrthographicCamera getCamara() {
 		return this.camara;
+	}
+
+	public Viewport getViewport() {
+		return this.viewport;
 	}
 }

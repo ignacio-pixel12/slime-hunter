@@ -22,6 +22,7 @@ import java.util.List;
 public class PantallaJuego implements Screen {
 
     private final SlimeHunter juego;
+    private final String nombreJugador;
     private Jugador jugador;
     private MapaJuego mapa;
     private CamaraJuego camara;
@@ -29,14 +30,19 @@ public class PantallaJuego implements Screen {
     private DebugColisiones debugColisiones;
     private InterfazHUD hud;
     private List<Enemigo> enemigos;
+    private float tiempoPartida;
+    private boolean terminado;
 
-    public PantallaJuego(SlimeHunter juego) {
+    public PantallaJuego(SlimeHunter juego, String nombreJugador) {
         this.juego = juego;
+        this.nombreJugador = nombreJugador;
     }
 
     @Override
     public void show() {
         this.manejadorEntrada = new ManejadorEntrada();
+        this.tiempoPartida = 0f;
+        this.terminado = false;
 
         this.mapa = new MapaJuego();
         this.mapa.cargar(Constantes.ARCHIVO_MAPA);
@@ -62,14 +68,20 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void render(float delta) {
+        if (this.terminado) return;
+
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        this.tiempoPartida += delta;
+
+        this.camara.getViewport().apply();
         this.camara.seguir(this.jugador.getPosicion());
 
         Matrix4 matrizMundo = this.camara.getCamara().combined;
         this.juego.getBatch().setProjectionMatrix(matrizMundo);
 
+        boolean estabaVivo = !this.jugador.estaMuerto();
         this.jugador.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
 
         for (Enemigo enemigo : this.enemigos) {
@@ -128,6 +140,11 @@ public class PantallaJuego implements Screen {
         this.hud.renderizar(this.jugador, matrizPantalla);
 
         this.enemigos.removeIf(Enemigo::debeEliminar);
+
+        if (estabaVivo && this.jugador.estaMuerto()) {
+            this.terminado = true;
+            this.juego.setScreen(new PantallaDerrota(this.juego, this.nombreJugador, this.tiempoPartida));
+        }
     }
 
     @Override

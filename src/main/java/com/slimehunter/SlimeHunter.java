@@ -10,7 +10,7 @@ public class SlimeHunter extends Game {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        setScreen(new com.slimehunter.pantalla.PantallaJuego(this));
+        setScreen(new com.slimehunter.pantalla.PantallaNombre(this));
     }
 
     @Override
