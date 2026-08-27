@@ -82,12 +82,46 @@ Si se instala Aseprite, se puede exportar los spritesheets de forma automática:
 
 ## Estado actual
 
-Sprint 1 en desarrollo. Implementado:
+Prototipo jugable — segunda pre-entrega. Implementado:
 
-- Movimiento lateral del jugador con aceleración y fricción
-- Salto con gravedad
-- Colisiones AABB con el escenario (mapas Tiled)
+### Jugador
+- Movimiento lateral con aceleración y fricción
+- Salto con gravedad (altura ajustable)
+- Control aéreo (50% de aceleración en el aire)
 - Ataque con espada (hitbox activo, cooldown, animación)
-- Sistema de vida, barra de HUD e invulnerabilidad
-- Enemigo patrulla con animaciones y colisiones
-- Tabla de estados para jugador y enemigos
+- Sistema de vida (5 puntos), barra de HUD e invulnerabilidad temporal
+- Bajar de plataformas con flecha abajo
+
+### Mapa y entorno
+- Mapa diseñado en Tiled (`diseño.tmx`) con múltiples capas de tiles
+- Colisiones sólidas y plataformas unidireccionales leídas desde el mapa
+- Spawn del jugador configurado desde el mapa
+
+### Enemigos
+- Enemigo patrulla (slime) con animaciones y sistema de vida
+- Colisión jugador ↔ enemigo: daño por contacto
+- Colisión ataque ↔ enemigo: el golpe reduce la vida del enemigo
+
+### Pantallas
+- Pantalla de nombre (el jugador ingresa su nombre)
+- Pantalla de juego
+- Pantalla de derrota (muestra nombre y tiempo)
+- Pantalla de victoria (muestra nombre y tiempo)
+- Transiciones entre pantallas con `setScreen()`
+
+### Cámara y viewport
+- Cámara con zoom (1/3) centrada en el jugador
+- Viewport con `FitViewport` para adaptación a diferentes resoluciones
+- Redimensionamiento dinámico al cambiar el tamaño de la ventana
+
+### Controles
+
+| Tecla | Acción |
+|-------|--------|
+| A / ← | Moverse a la izquierda |
+| D / → | Moverse a la derecha |
+| Espacio | Saltar |
+| Click izquierdo | Atacar |
+| S / ↓ | Bajar de plataforma |
+| F3 | Mostrar/ocultar debug de colisiones |
+| Enter | Confirmar / continuar en pantallas de menú |

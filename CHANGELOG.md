@@ -95,3 +95,35 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.
 - Render del slime centrado horizontal y verticalmente (igual que el caballero).
 - Aseprite export task: ruta configurable, se omite si Aseprite no está instalado.
 - Tarea `run` ya no depende automáticamente de `exportarSprites`.
+
+## [0.8.0] - 2026-08-27
+
+### Agregado
+
+- Integración del mapa diseñado en Tiled (`diseño.tmx`) con capas de colisiones sólidas, plataformas unidireccionales y spawn.
+- Sincronización automática de assets desde `art/tiled/` hacia `src/main/resources/mapa/` con task Gradle `sincronizarMapa`.
+- Spawn del jugador leído desde el mapa Tiled (objeto "Player" en capa "spawn").
+- Control aéreo: el jugador puede moverse horizontalmente mientras salta o cae (50% de aceleración).
+- Velocidad horizontal máxima en el aire clampada a `VELOCIDAD_JUGADOR` (200).
+- Bajar de plataformas: flecha abajo o S atraviesa plataformas unidireccionales temporalmente.
+- Cámara con zoom (1/3) centrada en el jugador.
+- Viewport con `FitViewport` para adaptación correcta a diferentes resoluciones.
+- Redimensionamiento dinámico de la cámara y el HUD al cambiar el tamaño de la ventana.
+- Pantalla de nombre (`PantallaNombre`): el jugador ingresa su nombre antes de comenzar.
+- Pantalla de derrota (`PantallaDerrota`): muestra "DERROTA", nombre del jugador y tiempo de partida.
+- Pantalla de victoria (`PantallaVictoria`): muestra "VICTORIA", nombre del jugador y tiempo de partida.
+- Transiciones entre pantallas con `setScreen()`: nombre → juego → victoria/derrota → nombre.
+- Timer de partida que registra el tiempo transcurrido desde el inicio hasta la muerte o victoria.
+
+### Corregido
+
+- Rutas de tilesets en el `.tmx` corregidas de rutas absolutas de Desktop a nombres locales.
+- Escala del jugador ajustada de 3x a 1x (`JUGADOR_ESCALA = 1f`).
+- Fuerza de salto reducida de 500 a 350 (`FUERZA_SALTO = 350f`).
+- Debug de colisiones desactivado por defecto (toggle con F3).
+- HUD anclado dinámicamente a la esquina superior izquierda según resolución de pantalla.
+- Texto de pantallas de resultado visible (reset de matriz de proyección del batch).
+
+### Eliminado
+
+- Clases legacy `Suelo.java` y `Plataforma.java` (reemplazadas por `EntidadEstatica` cargada desde Tiled).
