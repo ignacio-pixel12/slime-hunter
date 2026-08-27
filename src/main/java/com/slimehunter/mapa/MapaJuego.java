@@ -85,6 +85,36 @@ public class MapaJuego {
         return this.spawn;
     }
 
+    public List<Vector2> obtenerSpawnsEnemigos() {
+        return obtenerSpawnsCapa("slime_spawn");
+    }
+
+    public List<Vector2> obtenerSpawnsEnemigosSaltarines() {
+        return obtenerSpawnsCapa("slime2_spawn");
+    }
+
+    private List<Vector2> obtenerSpawnsCapa(String nombreCapa) {
+        List<Vector2> spawns = new ArrayList<>();
+        com.badlogic.gdx.maps.MapLayer capa = this.mapa.getLayers().get(nombreCapa);
+        if (capa == null) {
+            return spawns;
+        }
+        for (MapObject objeto : capa.getObjects()) {
+            try {
+                Object xRaw = objeto.getProperties().get("x");
+                Object yRaw = objeto.getProperties().get("y");
+                if (xRaw != null && yRaw != null) {
+                    float x = Float.parseFloat(xRaw.toString());
+                    float y = Float.parseFloat(yRaw.toString());
+                    spawns.add(new Vector2(x, y));
+                }
+            } catch (Exception e) {
+                // skip
+            }
+        }
+        return spawns;
+    }
+
     private void cargarCapa(String nombreCapa, List<EntidadEstatica> destino, boolean unidireccional) {
         if (this.mapa.getLayers().get(nombreCapa) == null) {
             return;

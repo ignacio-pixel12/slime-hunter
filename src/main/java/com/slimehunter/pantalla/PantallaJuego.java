@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.slimehunter.Constantes;
 import com.slimehunter.SlimeHunter;
 import com.slimehunter.entidad.Enemigo;
+import com.slimehunter.entidad.EnemigoSaltarin;
 import com.slimehunter.entidad.Entidad;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
@@ -30,6 +31,7 @@ public class PantallaJuego implements Screen {
     private DebugColisiones debugColisiones;
     private InterfazHUD hud;
     private List<Enemigo> enemigos;
+    private List<EnemigoSaltarin> enemigosSaltarines;
     private float tiempoPartida;
     private boolean terminado;
 
@@ -57,9 +59,20 @@ public class PantallaJuego implements Screen {
         this.jugador.setPuntoAparicion(spawnX, spawnY);
 
         this.enemigos = new ArrayList<>();
-        this.enemigos.add(new Enemigo(
-            spawnX + 200, spawnY,
-            spawnX + 100, spawnX + 500));
+        float rangoPatrulla = 50f;
+        for (com.badlogic.gdx.math.Vector2 spawnEnemigo : this.mapa.obtenerSpawnsEnemigos()) {
+            this.enemigos.add(new Enemigo(
+                spawnEnemigo.x, spawnEnemigo.y,
+                spawnEnemigo.x - rangoPatrulla, spawnEnemigo.x + rangoPatrulla));
+        }
+
+        this.enemigosSaltarines = new ArrayList<>();
+        float rangoPatrullaSaltarin = 30f;
+        for (com.badlogic.gdx.math.Vector2 spawnSaltarin : this.mapa.obtenerSpawnsEnemigosSaltarines()) {
+            this.enemigosSaltarines.add(new EnemigoSaltarin(
+                spawnSaltarin.x, spawnSaltarin.y,
+                spawnSaltarin.x - rangoPatrullaSaltarin, spawnSaltarin.x + rangoPatrullaSaltarin));
+        }
 
         this.debugColisiones = new DebugColisiones();
         this.hud = new InterfazHUD();
@@ -88,6 +101,10 @@ public class PantallaJuego implements Screen {
             enemigo.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
         }
 
+        for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+            saltarin.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
+        }
+
         Rectangle hitboxAtaque = this.jugador.obtenerHitboxAtaque();
         if (hitboxAtaque != null) {
             for (Enemigo enemigo : this.enemigos) {
@@ -95,6 +112,14 @@ public class PantallaJuego implements Screen {
                     Rectangle hurtbox = enemigo.obtenerHurtbox();
                     if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
                         enemigo.recibirDano(1);
+                    }
+                }
+            }
+            for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+                if (!saltarin.estaMuerto()) {
+                    Rectangle hurtbox = saltarin.obtenerHurtbox();
+                    if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
+                        saltarin.recibirDano(1);
                     }
                 }
             }
@@ -106,6 +131,14 @@ public class PantallaJuego implements Screen {
                 for (Enemigo enemigo : this.enemigos) {
                     if (!enemigo.estaMuerto()) {
                         Rectangle hurtbox = enemigo.obtenerHurtbox();
+                        if (hurtbox != null && hurtbox.overlaps(hurtboxJugador)) {
+                            this.jugador.recibirDano(Constantes.SLIME_DANO);
+                        }
+                    }
+                }
+                for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+                    if (!saltarin.estaMuerto()) {
+                        Rectangle hurtbox = saltarin.obtenerHurtbox();
                         if (hurtbox != null && hurtbox.overlaps(hurtboxJugador)) {
                             this.jugador.recibirDano(Constantes.SLIME_DANO);
                         }
@@ -125,6 +158,11 @@ public class PantallaJuego implements Screen {
                     entidadesDebug.add(enemigo);
                 }
             }
+            for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+                if (!saltarin.estaMuerto()) {
+                    entidadesDebug.add(saltarin);
+                }
+            }
             this.debugColisiones.renderizar(entidadesDebug, matrizMundo);
         }
 
@@ -133,6 +171,9 @@ public class PantallaJuego implements Screen {
         for (Enemigo enemigo : this.enemigos) {
             enemigo.render(this.juego.getBatch());
         }
+        for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+            saltarin.render(this.juego.getBatch());
+        }
         this.juego.getBatch().end();
 
         Matrix4 matrizPantalla = new Matrix4();
@@ -140,6 +181,7 @@ public class PantallaJuego implements Screen {
         this.hud.renderizar(this.jugador, matrizPantalla);
 
         this.enemigos.removeIf(Enemigo::debeEliminar);
+        this.enemigosSaltarines.removeIf(EnemigoSaltarin::debeEliminar);
 
         if (estabaVivo && this.jugador.estaMuerto()) {
             this.terminado = true;
@@ -172,6 +214,9 @@ public class PantallaJuego implements Screen {
         this.hud.dispose();
         for (Enemigo enemigo : this.enemigos) {
             enemigo.dispose();
+        }
+        for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+            saltarin.dispose();
         }
     }
 }

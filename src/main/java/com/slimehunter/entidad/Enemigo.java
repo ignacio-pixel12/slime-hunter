@@ -49,6 +49,7 @@ public class Enemigo extends EntidadDinamica {
 		setOriginCenter();
 
 		this.registrarTransiciones();
+		this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
 	}
 
 	private static TextureRegion obtenerFrameInicial() {
@@ -60,8 +61,8 @@ public class Enemigo extends EntidadDinamica {
 	private void registrarTransiciones() {
 		TablaEstados t = this.getTablaEstados();
 
+		t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.CAMINANDO);
 		t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.RECIBIENDO_DANO);
-
 		t.registrarTransicion(EstadoAnimacion.RECIBIENDO_DANO, EstadoAnimacion.CAMINANDO);
 	}
 
