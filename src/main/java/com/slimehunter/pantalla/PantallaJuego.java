@@ -11,6 +11,7 @@ import com.slimehunter.SlimeHunter;
 import com.slimehunter.entidad.Enemigo;
 import com.slimehunter.entidad.EnemigoSaltarin;
 import com.slimehunter.entidad.Entidad;
+import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
 import com.slimehunter.grafico.DebugColisiones;
@@ -77,6 +78,7 @@ public class PantallaJuego implements Screen {
         this.debugColisiones = new DebugColisiones();
         this.hud = new InterfazHUD();
         Gdx.input.setInputProcessor(this.manejadorEntrada);
+        GestorAudio.getInstancia().reproducirMusica();
     }
 
     @Override
@@ -147,6 +149,47 @@ public class PantallaJuego implements Screen {
             }
         }
 
+        if (!this.jugador.estaMuerto()) {
+            Rectangle hurtboxJugador = this.jugador.obtenerHurtbox();
+            if (hurtboxJugador != null) {
+                for (Rectangle pinche : this.mapa.obtenerPinches()) {
+                    if (hurtboxJugador.overlaps(pinche)) {
+                        this.jugador.recibirDano(Constantes.PINCHES_DANO);
+                        this.jugador.rebotar(400f);
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (Enemigo enemigo : this.enemigos) {
+            if (!enemigo.estaMuerto()) {
+                Rectangle hurtboxEnemigo = enemigo.obtenerHurtbox();
+                if (hurtboxEnemigo != null) {
+                    for (Rectangle pinche : this.mapa.obtenerPinches()) {
+                        if (hurtboxEnemigo.overlaps(pinche)) {
+                            enemigo.recibirDano(Constantes.PINCHES_DANO);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
+            if (!saltarin.estaMuerto()) {
+                Rectangle hurtboxSaltarin = saltarin.obtenerHurtbox();
+                if (hurtboxSaltarin != null) {
+                    for (Rectangle pinche : this.mapa.obtenerPinches()) {
+                        if (hurtboxSaltarin.overlaps(pinche)) {
+                            saltarin.recibirDano(Constantes.PINCHES_DANO);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         this.mapa.render(this.camara.getCamara());
 
         if (this.manejadorEntrada.debeMostrarDebug()) {
@@ -185,6 +228,8 @@ public class PantallaJuego implements Screen {
 
         if (estabaVivo && this.jugador.estaMuerto()) {
             this.terminado = true;
+            GestorAudio.getInstancia().detenerMusica();
+            GestorAudio.getInstancia().derrota();
             this.juego.setScreen(new PantallaDerrota(this.juego, this.nombreJugador, this.tiempoPartida));
         }
     }
@@ -204,6 +249,7 @@ public class PantallaJuego implements Screen {
 
     @Override
     public void hide() {
+        GestorAudio.getInstancia().detenerMusica();
     }
 
     @Override

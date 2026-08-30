@@ -42,7 +42,7 @@ public final class Constantes {
 
     public static final float JUGADOR_ESCALA = 1f;
 
-    public static final int JUGADOR_VIDA_MAXIMA = 10;
+    public static final int JUGADOR_VIDA_MAXIMA = 1000;
     public static final float DURACION_INVULNERABILIDAD = 1.0f;
 
     public static final boolean DEBUG_CAJAS = true;
@@ -58,4 +58,5 @@ public final class Constantes {
     public static final float SLIME_VELOCIDAD = 400f;
     public static final int SLIME_DANO = 1;
     public static final float SLIME_ESCALA = 1.2f;
+    public static final int PINCHES_DANO = 5;
 }

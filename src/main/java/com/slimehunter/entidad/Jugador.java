@@ -9,6 +9,7 @@ import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.EstadoAnimacion;
+import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.grafico.GestorCajas;
 import com.slimehunter.grafico.GestorSprites;
 import com.slimehunter.input.Entrada;
@@ -32,8 +33,8 @@ public class Jugador extends EntidadDinamica {
     private float tiempoMuerte;
     private Vector2 puntoAparicion;
 
-    private static final float DURACION_ATAQUE = 0.64f;
-    private static final float COOLDOWN_ATAQUE = 0.5f;
+    private static final float DURACION_ATAQUE = 0.50f;
+    private static final float COOLDOWN_ATAQUE = 0.3f;
     private static final float DURACION_MUERTE = 0.44f;
 
     public Jugador(float x, float y, Entrada entrada) {
@@ -153,6 +154,7 @@ public class Jugador extends EntidadDinamica {
             this.iniciarAtaque();
         } else if (e.debeSaltar()) {
             this.saltar();
+            GestorAudio.getInstancia().saltar();
             this.getTablaEstados().cambiarEstado(EstadoAnimacion.SALTANDO);
         } else if (e.debeMoverIzquierda()) {
             this.mover(-Constantes.ACELERACION_JUGADOR);
@@ -177,6 +179,7 @@ public class Jugador extends EntidadDinamica {
             this.iniciarAtaque();
         } else if (e.debeSaltar()) {
             this.saltar();
+            GestorAudio.getInstancia().saltar();
             this.getTablaEstados().cambiarEstado(EstadoAnimacion.SALTANDO);
         } else if (e.debeMoverIzquierda()) {
             this.mover(-Constantes.ACELERACION_JUGADOR);
@@ -272,6 +275,7 @@ public class Jugador extends EntidadDinamica {
         this.tiempoAtaque = 0;
         this.tiempoAnimacion = 0;
         this.cooldownRestante = COOLDOWN_ATAQUE;
+        GestorAudio.getInstancia().atacar();
     }
 
     public void recibirDano(int cantidad) {
@@ -284,12 +288,20 @@ public class Jugador extends EntidadDinamica {
         this.invulnerable = true;
         this.temporizadorInvulnerabilidad = Constantes.DURACION_INVULNERABILIDAD;
 
+        GestorAudio.getInstancia().recibirDano();
+
         if (this.vida <= 0) {
             this.getTablaEstados().cambiarEstado(EstadoAnimacion.MURIENDO);
             this.tiempoMuerte = 0;
             this.tiempoAnimacion = 0;
             this.detener();
+            GestorAudio.getInstancia().morirJugador();
         }
+    }
+
+    public void rebotar(float fuerza) {
+        this.velocidad.y = fuerza;
+        this.enElSuelo = false;
     }
 
     public void reiniciar() {

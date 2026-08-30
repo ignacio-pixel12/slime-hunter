@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.EstadoAnimacion;
+import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.grafico.GestorCajas;
 import com.slimehunter.grafico.GestorSprites;
 
@@ -117,10 +118,12 @@ public class Enemigo extends EntidadDinamica {
 		if (this.muerto)
 			return;
 		this.vida -= cantidad;
+		GestorAudio.getInstancia().golpearEnemigo();
 		if (this.vida <= 0) {
 			this.vida = 0;
 			this.muerto = true;
 			this.detener();
+			GestorAudio.getInstancia().morirEnemigo();
 		} else {
 			this.tiempoHit = 0f;
 			this.getTablaEstados().cambiarEstado(EstadoAnimacion.RECIBIENDO_DANO);

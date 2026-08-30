@@ -4,6 +4,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
 import com.slimehunter.Constantes;
+import com.slimehunter.grafico.GestorAudio;
 
 public class ManejadorEntrada extends InputAdapter implements Entrada {
 
@@ -34,6 +35,9 @@ public class ManejadorEntrada extends InputAdapter implements Entrada {
                 return true;
             case Input.Keys.F3:
                 this.mostrarDebug = !this.mostrarDebug;
+                return true;
+            case Input.Keys.M:
+                GestorAudio.getInstancia().toggleMute();
                 return true;
             default:
                 return false;

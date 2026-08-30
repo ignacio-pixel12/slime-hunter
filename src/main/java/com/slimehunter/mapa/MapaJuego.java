@@ -32,6 +32,7 @@ public class MapaJuego {
     private OrthogonalTiledMapRenderer rendererMapa;
     private final List<EntidadEstatica> colisiones;
     private final List<EntidadEstatica> plataformas;
+    private final List<Rectangle> pinches;
     private final Map<String, Rectangle> regiones;
     private final ShapeRenderer shapeRenderer;
     private final TextureRegion texturaColision;
@@ -40,6 +41,7 @@ public class MapaJuego {
     public MapaJuego() {
         this.colisiones = new ArrayList<>();
         this.plataformas = new ArrayList<>();
+        this.pinches = new ArrayList<>();
         this.regiones = new HashMap<>();
         this.shapeRenderer = new ShapeRenderer();
         this.texturaColision = crearTexturaCompartida();
@@ -51,6 +53,7 @@ public class MapaJuego {
 
         cargarCapa(CAPA_SOLIDOS, this.colisiones, false);
         cargarCapa(CAPA_PLATAFORMAS, this.plataformas, true);
+        cargarPinches();
         this.buscarSpawn();
     }
 
@@ -113,6 +116,22 @@ public class MapaJuego {
             }
         }
         return spawns;
+    }
+
+    private void cargarPinches() {
+        com.badlogic.gdx.maps.MapLayer capa = this.mapa.getLayers().get("pinches");
+        if (capa == null) {
+            return;
+        }
+        for (MapObject objeto : capa.getObjects()) {
+            if (objeto instanceof RectangleMapObject) {
+                this.pinches.add(((RectangleMapObject) objeto).getRectangle());
+            }
+        }
+    }
+
+    public List<Rectangle> obtenerPinches() {
+        return this.pinches;
     }
 
     private void cargarCapa(String nombreCapa, List<EntidadEstatica> destino, boolean unidireccional) {
