@@ -125,3 +125,7 @@ Prototipo jugable — segunda pre-entrega. Implementado:
 | S / ↓ | Bajar de plataforma |
 | F3 | Mostrar/ocultar debug de colisiones |
 | Enter | Confirmar / continuar en pantallas de menú |
+
+## Video de demostración
+
+[Ver video de la segunda pre-entrega](https://drive.google.com/file/d/13EytF8uY1TSxEZEM__putq_KjG59iZcs/view?usp=sharing)
