@@ -16,6 +16,7 @@ public class EnemigoSaltarin extends EntidadDinamica {
     private float tiempoAnimacion;
     private int vida;
     private int maxVida;
+    private int dano;
     private boolean muerto;
     private float tiempoMuerte;
     private float limiteIzquierdo;
@@ -43,6 +44,7 @@ public class EnemigoSaltarin extends EntidadDinamica {
         this.tiempoAnimacion = 0f;
         this.vida = Constantes.SLIME_VIDA_MAXIMA;
         this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
+        this.dano = Constantes.SLIME_DANO;
         this.muerto = false;
         this.tiempoMuerte = 0f;
         this.limiteIzquierdo = limiteIzq;
@@ -143,6 +145,7 @@ public class EnemigoSaltarin extends EntidadDinamica {
     public boolean debeEliminar() { return this.muerto && this.tiempoMuerte >= 0.3f; }
     public int getVida() { return this.vida; }
     public int getMaxVida() { return this.maxVida; }
+    public int getDano() { return this.dano; }
 
     private String getNombreAnimacion() {
         return this.muerto ? "Saltar" :

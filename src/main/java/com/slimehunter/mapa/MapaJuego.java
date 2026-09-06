@@ -112,7 +112,7 @@ public class MapaJuego {
                     spawns.add(new Vector2(x, y));
                 }
             } catch (Exception e) {
-                // skip
+               
             }
         }
         return spawns;

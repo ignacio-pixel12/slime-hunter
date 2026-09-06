@@ -32,10 +32,7 @@ public class CamaraJuego {
 
 	public void seguir(Vector2 posicion) {
 		float objetivoX = posicion.x;
-		float objetivoY = posicion.y;
-
-		//this.camara.position.x = MathUtils.lerp(this.camara.position.x, objetivoX, 0.1f);
-	//	this.camara.position.y = MathUtils.lerp(this.camara.position.y, objetivoY, 0.1f);
+		float objetivoY = posicion.y; 
 		this.camara.position.x = objetivoX;
 		this.camara.position.y = objetivoY;
 		float mediaAncho = this.anchoVista * this.camara.zoom / 2f;

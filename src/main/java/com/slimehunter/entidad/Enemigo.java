@@ -16,6 +16,7 @@ public class Enemigo extends EntidadDinamica {
 	private float tiempoAnimacion;
 	private int vida;
 	private int maxVida;
+	private int dano;
 	private boolean muerto;
 	private float tiempoMuerte;
 	private float limiteIzquierdo;
@@ -24,6 +25,12 @@ public class Enemigo extends EntidadDinamica {
 
 	private static final float DURACION_HIT = 0.5f;
 	private float tiempoHit;
+
+	private float tiempoCaminando;
+	private float temporizadorPausa;
+	private static final float DURACION_CAMINATA = 2f;
+	private static final float DURACION_PAUSA = 1.5f;
+	private boolean enPausa;
 
 	private static GestorSprites gestorCache;
 	private static GestorCajas gestorCajasCache;
@@ -39,6 +46,7 @@ public class Enemigo extends EntidadDinamica {
 		this.tiempoAnimacion = 0f;
 		this.vida = Constantes.SLIME_VIDA_MAXIMA;
 		this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
+		this.dano = Constantes.SLIME_DANO;
 		this.muerto = false;
 		this.tiempoMuerte = 0f;
 		this.limiteIzquierdo = limiteIzq;
@@ -87,6 +95,15 @@ public class Enemigo extends EntidadDinamica {
 	}
 
 	private void updateCaminando(float delta) {
+		if (this.enPausa) {
+			this.temporizadorPausa -= delta;
+			if (this.temporizadorPausa <= 0) {
+				this.enPausa = false;
+				this.tiempoCaminando = 0;
+			}
+			return;
+		}
+
 		if (this.posicion.x >= this.limiteDerecho) {
 			this.yendoDerecha = false;
 		} else if (this.posicion.x <= this.limiteIzquierdo) {
@@ -97,6 +114,13 @@ public class Enemigo extends EntidadDinamica {
 			this.mover(Constantes.SLIME_VELOCIDAD);
 		} else {
 			this.mover(-Constantes.SLIME_VELOCIDAD);
+		}
+
+		this.tiempoCaminando += delta;
+		if (this.tiempoCaminando >= DURACION_CAMINATA) {
+			this.enPausa = true;
+			this.temporizadorPausa = DURACION_PAUSA;
+			this.detener();
 		}
 
 		this.tiempoAnimacion += delta;
@@ -144,6 +168,10 @@ public class Enemigo extends EntidadDinamica {
 
 	public int getMaxVida() {
 		return this.maxVida;
+	}
+
+	public int getDano() {
+		return this.dano;
 	}
 
 	private String getNombreAnimacion() {

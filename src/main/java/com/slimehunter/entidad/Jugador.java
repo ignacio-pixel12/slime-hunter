@@ -28,6 +28,7 @@ public class Jugador extends EntidadDinamica {
 
     private int vida;
     private int maxVida;
+    private int dano;
     private boolean invulnerable;
     private float temporizadorInvulnerabilidad;
     private float tiempoMuerte;
@@ -36,6 +37,7 @@ public class Jugador extends EntidadDinamica {
     private static final float DURACION_ATAQUE = 0.50f;
     private static final float COOLDOWN_ATAQUE = 0.3f;
     private static final float DURACION_MUERTE = 0.44f;
+    private static final int DANO_JUGADOR = 1;
 
     public Jugador(float x, float y, Entrada entrada) {
         super(obtenerFrameInicial(), x, y,
@@ -52,6 +54,7 @@ public class Jugador extends EntidadDinamica {
 
         this.vida = Constantes.JUGADOR_VIDA_MAXIMA;
         this.maxVida = Constantes.JUGADOR_VIDA_MAXIMA;
+        this.dano = DANO_JUGADOR;
         this.invulnerable = false;
         this.temporizadorInvulnerabilidad = 0f;
         this.tiempoMuerte = 0f;
@@ -410,6 +413,10 @@ public class Jugador extends EntidadDinamica {
 
     public int getMaxVida() {
         return this.maxVida;
+    }
+
+    public int getDano() {
+        return this.dano;
     }
 
     private String getNombreAnimacion(EstadoAnimacion estado) {

@@ -113,7 +113,7 @@ public class PantallaJuego implements Screen {
                 if (!enemigo.estaMuerto()) {
                     Rectangle hurtbox = enemigo.obtenerHurtbox();
                     if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
-                        enemigo.recibirDano(1);
+                        enemigo.recibirDano(this.jugador.getDano());
                     }
                 }
             }
@@ -121,7 +121,7 @@ public class PantallaJuego implements Screen {
                 if (!saltarin.estaMuerto()) {
                     Rectangle hurtbox = saltarin.obtenerHurtbox();
                     if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
-                        saltarin.recibirDano(1);
+                        saltarin.recibirDano(this.jugador.getDano());
                     }
                 }
             }
@@ -134,7 +134,7 @@ public class PantallaJuego implements Screen {
                     if (!enemigo.estaMuerto()) {
                         Rectangle hurtbox = enemigo.obtenerHurtbox();
                         if (hurtbox != null && hurtbox.overlaps(hurtboxJugador)) {
-                            this.jugador.recibirDano(Constantes.SLIME_DANO);
+                            this.jugador.recibirDano(enemigo.getDano());
                         }
                     }
                 }
@@ -142,7 +142,7 @@ public class PantallaJuego implements Screen {
                     if (!saltarin.estaMuerto()) {
                         Rectangle hurtbox = saltarin.obtenerHurtbox();
                         if (hurtbox != null && hurtbox.overlaps(hurtboxJugador)) {
-                            this.jugador.recibirDano(Constantes.SLIME_DANO);
+                            this.jugador.recibirDano(saltarin.getDano());
                         }
                     }
                 }
