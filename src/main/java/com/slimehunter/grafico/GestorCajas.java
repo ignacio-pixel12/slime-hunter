@@ -10,22 +10,6 @@ import java.util.Map;
 
 public class GestorCajas {
 
-    public enum TipoCaja {
-        COLBOX("colbox"),
-        HITBOX("hitbox"),
-        HURTBOX("hurtbox");
-
-        private final String nombreJson;
-
-        TipoCaja(String nombreJson) {
-            this.nombreJson = nombreJson;
-        }
-
-        public String getNombreJson() {
-            return this.nombreJson;
-        }
-    }
-
     private final Map<TipoCaja, Map<String, Map<Integer, Rectangle>>> cajas;
 
     public GestorCajas(String archivoCajas) {

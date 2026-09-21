@@ -227,7 +227,7 @@
  ],
  "meta": {
   "app": "https://www.aseprite.org/",
-  "version": "1.3.18.3-x64",
+  "version": "1.3.18.5-x64",
   "image": "knight-sheet.png",
   "format": "RGBA8888",
   "size": { "w": 3200, "h": 128 },

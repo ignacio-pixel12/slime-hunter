@@ -6,5 +6,6 @@ public interface Entrada {
     boolean debeSaltar();
     boolean debeBajar();
     boolean debeAtacar();
+    boolean debeDash();
     boolean debeMostrarDebug();
 }

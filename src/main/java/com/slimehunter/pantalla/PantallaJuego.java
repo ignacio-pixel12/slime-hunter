@@ -19,7 +19,11 @@ import com.slimehunter.input.ManejadorEntrada;
 import com.slimehunter.mapa.MapaJuego;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class PantallaJuego implements Screen {
 
@@ -35,6 +39,8 @@ public class PantallaJuego implements Screen {
     private List<EnemigoSaltarin> enemigosSaltarines;
     private float tiempoPartida;
     private boolean terminado;
+    private final Set<Integer> enemigosGolpeados = new HashSet<>();
+    private boolean ataqueAnteriorActivo = false;
 
     public PantallaJuego(SlimeHunter juego, String nombreJugador) {
         this.juego = juego;
@@ -51,6 +57,7 @@ public class PantallaJuego implements Screen {
         this.mapa.cargar(Constantes.ARCHIVO_MAPA);
 
         this.camara = new CamaraJuego(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.camara.setLimites(0, this.mapa.obtenerAnchoMapa(), 0, this.mapa.obtenerAltoMapa());
 
         com.badlogic.gdx.math.Vector2 spawn = this.mapa.obtenerSpawn();
         float spawnX = spawn != null ? spawn.x : Constantes.INICIO_JUGADOR_X;
@@ -64,7 +71,8 @@ public class PantallaJuego implements Screen {
         for (com.badlogic.gdx.math.Vector2 spawnEnemigo : this.mapa.obtenerSpawnsEnemigos()) {
             this.enemigos.add(new Enemigo(
                 spawnEnemigo.x, spawnEnemigo.y,
-                spawnEnemigo.x - rangoPatrulla, spawnEnemigo.x + rangoPatrulla));
+                spawnEnemigo.x - rangoPatrulla, spawnEnemigo.x + rangoPatrulla,
+                this.mapa.getGestorSpritesSlime1(), this.mapa.getGestorCajasSlime1()));
         }
 
         this.enemigosSaltarines = new ArrayList<>();
@@ -72,7 +80,8 @@ public class PantallaJuego implements Screen {
         for (com.badlogic.gdx.math.Vector2 spawnSaltarin : this.mapa.obtenerSpawnsEnemigosSaltarines()) {
             this.enemigosSaltarines.add(new EnemigoSaltarin(
                 spawnSaltarin.x, spawnSaltarin.y,
-                spawnSaltarin.x - rangoPatrullaSaltarin, spawnSaltarin.x + rangoPatrullaSaltarin));
+                spawnSaltarin.x - rangoPatrullaSaltarin, spawnSaltarin.x + rangoPatrullaSaltarin,
+                this.mapa.getGestorSpritesSlime2(), this.mapa.getGestorCajasSlime2()));
         }
 
         this.debugColisiones = new DebugColisiones();
@@ -108,22 +117,34 @@ public class PantallaJuego implements Screen {
         }
 
         Rectangle hitboxAtaque = this.jugador.obtenerHitboxAtaque();
+        boolean ataqueActivo = hitboxAtaque != null;
+        if (ataqueActivo && !this.ataqueAnteriorActivo) {
+            this.enemigosGolpeados.clear();
+        }
+        this.ataqueAnteriorActivo = ataqueActivo;
+
         if (hitboxAtaque != null) {
+            int indice = 0;
             for (Enemigo enemigo : this.enemigos) {
-                if (!enemigo.estaMuerto()) {
+                if (!enemigo.estaMuerto() && !this.enemigosGolpeados.contains(indice)) {
                     Rectangle hurtbox = enemigo.obtenerHurtbox();
                     if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
                         enemigo.recibirDano(this.jugador.getDano());
+                        this.enemigosGolpeados.add(indice);
                     }
                 }
+                indice++;
             }
+            indice = 0;
             for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
-                if (!saltarin.estaMuerto()) {
+                if (!saltarin.estaMuerto() && !this.enemigosGolpeados.contains(1000 + indice)) {
                     Rectangle hurtbox = saltarin.obtenerHurtbox();
                     if (hurtbox != null && hurtbox.overlaps(hitboxAtaque)) {
                         saltarin.recibirDano(this.jugador.getDano());
+                        this.enemigosGolpeados.add(1000 + indice);
                     }
                 }
+                indice++;
             }
         }
 
@@ -190,6 +211,34 @@ public class PantallaJuego implements Screen {
             }
         }
 
+        if (!this.jugador.estaMuerto()) {
+            Rectangle hurtboxJugador = this.jugador.obtenerHurtbox();
+            if (hurtboxJugador != null) {
+                java.util.Map<String, Rectangle> hab = this.mapa.obtenerHabilidades();
+                System.out.println("Habilidades: " + hab.size() + " hurtbox: " + hurtboxJugador);
+                for (java.util.Map.Entry<String, Rectangle> entry : hab.entrySet()) {
+                    System.out.println("  " + entry.getKey() + " -> " + entry.getValue() + " overlaps: " + hurtboxJugador.overlaps(entry.getValue()));
+                }
+                Iterator<Map.Entry<String, Rectangle>> it = hab.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Rectangle> entry = it.next();
+                    if (hurtboxJugador.overlaps(entry.getValue())) {
+                        switch (entry.getKey()) {
+                            case "doble salto":
+                                this.jugador.setTieneDobleSalto(true);
+                                this.jugador.setSaltosRestantes(2);
+                                break;
+                            case "dash":
+                                this.jugador.setTieneDash(true);
+                                break;
+                        }
+                        GestorAudio.getInstancia().victoria();
+                        it.remove();
+                    }
+                }
+            }
+        }
+
         this.mapa.render(this.camara.getCamara());
 
         if (this.manejadorEntrada.debeMostrarDebug()) {
@@ -230,6 +279,9 @@ public class PantallaJuego implements Screen {
             this.terminado = true;
             GestorAudio.getInstancia().detenerMusica();
             GestorAudio.getInstancia().derrota();
+        }
+
+        if (this.terminado && !this.jugador.estaEnAnimacionMuerte()) {
             this.juego.setScreen(new PantallaDerrota(this.juego, this.nombreJugador, this.tiempoPartida));
         }
     }
@@ -258,11 +310,5 @@ public class PantallaJuego implements Screen {
         this.mapa.dispose();
         this.debugColisiones.dispose();
         this.hud.dispose();
-        for (Enemigo enemigo : this.enemigos) {
-            enemigo.dispose();
-        }
-        for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
-            saltarin.dispose();
-        }
     }
 }

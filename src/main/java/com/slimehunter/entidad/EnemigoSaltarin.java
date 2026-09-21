@@ -7,6 +7,7 @@ import com.slimehunter.estado.TablaEstados;
 import com.slimehunter.grafico.EstadoAnimacion;
 import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.grafico.GestorCajas;
+import com.slimehunter.grafico.TipoCaja;
 import com.slimehunter.grafico.GestorSprites;
 
 public class EnemigoSaltarin extends EntidadDinamica {
@@ -30,17 +31,13 @@ public class EnemigoSaltarin extends EntidadDinamica {
     private static final float INTERVALO_SALTO = 1.5f;
     private static final float FUERZA_SALTO_ENEMIGO = 300f;
 
-    private static GestorSprites gestorCache;
-    private static GestorCajas gestorCajasCache;
-
-    public EnemigoSaltarin(float x, float y, float limiteIzq, float limiteDer) {
-        super(obtenerFrameInicial(), x, y, Constantes.SLIME_ANCHO_COLISION, Constantes.SLIME_ALTO_COLISION,
+    public EnemigoSaltarin(float x, float y, float limiteIzq, float limiteDer,
+                           GestorSprites gestorSprites, GestorCajas gestorCajas) {
+        super(gestorSprites.obtenerFrameInactivo(), x, y, Constantes.SLIME_ANCHO_COLISION, Constantes.SLIME_ALTO_COLISION,
                 Constantes.SLIME_VELOCIDAD, 8f, EstadoAnimacion.values().length, null);
 
-        this.gestorSprites = gestorCache;
-        this.gestorCajas = gestorCajasCache;
-        gestorCache = null;
-        gestorCajasCache = null;
+        this.gestorSprites = gestorSprites;
+        this.gestorCajas = gestorCajas;
         this.tiempoAnimacion = 0f;
         this.vida = Constantes.SLIME_VIDA_MAXIMA;
         this.maxVida = Constantes.SLIME_VIDA_MAXIMA;
@@ -58,12 +55,6 @@ public class EnemigoSaltarin extends EntidadDinamica {
 
         this.registrarTransiciones();
         this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
-    }
-
-    private static TextureRegion obtenerFrameInicial() {
-        gestorCache = new GestorSprites("slime2-sheet.png", "slime2-data.json");
-        gestorCajasCache = new GestorCajas("slime2-cajas.json");
-        return gestorCache.obtenerFrameInactivo();
     }
 
     private void registrarTransiciones() {
@@ -174,7 +165,7 @@ public class EnemigoSaltarin extends EntidadDinamica {
     }
 
     public Rectangle obtenerHurtbox() {
-        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HURTBOX,
+        Rectangle caja = this.gestorCajas.getCaja(TipoCaja.HURTBOX,
                 this.getNombreAnimacion(), this.getFrameActual());
         if (caja == null) return null;
         return GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
@@ -183,7 +174,7 @@ public class EnemigoSaltarin extends EntidadDinamica {
 
     @Override
     public Rectangle obtenerLimites() {
-        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.COLBOX,
+        Rectangle caja = this.gestorCajas.getCaja(TipoCaja.COLBOX,
                 this.getNombreAnimacion(), this.getFrameActual());
         if (caja == null) {
             return new Rectangle(this.posicion.x, this.posicion.y, this.anchoColision, this.altoColision);
@@ -191,6 +182,4 @@ public class EnemigoSaltarin extends EntidadDinamica {
         return GestorCajas.convertirAMundo(caja, this.getXInicioSprite(), this.getYInicioSprite(),
                 this.getEscala(), this.getAltoFrame());
     }
-
-    public void dispose() { this.gestorSprites.dispose(); }
 }

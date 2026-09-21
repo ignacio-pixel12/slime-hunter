@@ -17,6 +17,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import com.slimehunter.entidad.EntidadEstatica;
+import com.slimehunter.grafico.GestorCajas;
+import com.slimehunter.grafico.GestorSprites;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,18 +35,28 @@ public class MapaJuego {
     private final List<EntidadEstatica> colisiones;
     private final List<EntidadEstatica> plataformas;
     private final List<Rectangle> pinches;
+    private final Map<String, Rectangle> habilidades;
     private final Map<String, Rectangle> regiones;
     private final ShapeRenderer shapeRenderer;
     private final TextureRegion texturaColision;
+    private final GestorSprites gestorSpritesSlime1;
+    private final GestorCajas gestorCajasSlime1;
+    private final GestorSprites gestorSpritesSlime2;
+    private final GestorCajas gestorCajasSlime2;
     private Vector2 spawn;
 
     public MapaJuego() {
         this.colisiones = new ArrayList<>();
         this.plataformas = new ArrayList<>();
         this.pinches = new ArrayList<>();
+        this.habilidades = new HashMap<>();
         this.regiones = new HashMap<>();
         this.shapeRenderer = new ShapeRenderer();
         this.texturaColision = crearTexturaCompartida();
+        this.gestorSpritesSlime1 = new GestorSprites("slime1-sheet.png", "slime1-data.json");
+        this.gestorCajasSlime1 = new GestorCajas("slime1-cajas.json");
+        this.gestorSpritesSlime2 = new GestorSprites("slime2-sheet.png", "slime2-data.json");
+        this.gestorCajasSlime2 = new GestorCajas("slime2-cajas.json");
     }
 
     public void cargar(String archivoTmx) {
@@ -54,7 +66,28 @@ public class MapaJuego {
         cargarCapa(CAPA_SOLIDOS, this.colisiones, false);
         cargarCapa(CAPA_PLATAFORMAS, this.plataformas, true);
         cargarPinches();
+        cargarHabilidades();
         this.buscarSpawn();
+    }
+
+    public float obtenerAnchoMapa() {
+        if (this.mapa == null) return 0;
+        Integer ancho = this.mapa.getProperties().get("width", Integer.class);
+        Integer tileWidth = this.mapa.getProperties().get("tilewidth", Integer.class);
+        if (ancho != null && tileWidth != null) {
+            return ancho * tileWidth;
+        }
+        return 0;
+    }
+
+    public float obtenerAltoMapa() {
+        if (this.mapa == null) return 0;
+        Integer alto = this.mapa.getProperties().get("height", Integer.class);
+        Integer tileHeight = this.mapa.getProperties().get("tileheight", Integer.class);
+        if (alto != null && tileHeight != null) {
+            return alto * tileHeight;
+        }
+        return 0;
     }
 
     private void buscarSpawn() {
@@ -112,7 +145,7 @@ public class MapaJuego {
                     spawns.add(new Vector2(x, y));
                 }
             } catch (Exception e) {
-               
+                System.err.println("Error leyendo spawn: " + e.getMessage());
             }
         }
         return spawns;
@@ -132,6 +165,35 @@ public class MapaJuego {
 
     public List<Rectangle> obtenerPinches() {
         return this.pinches;
+    }
+
+    private void cargarHabilidades() {
+        com.badlogic.gdx.maps.MapLayer capa = this.mapa.getLayers().get("abilidades");
+        if (capa == null) {
+            System.out.println("MAPA: capa 'abilidades' no encontrada");
+            return;
+        }
+        System.out.println("MAPA: capa 'abilidades' encontrada");
+        for (MapObject objeto : capa.getObjects()) {
+            if (objeto instanceof RectangleMapObject) {
+                String nombre = objeto.getName();
+                Rectangle rect = ((RectangleMapObject) objeto).getRectangle();
+                System.out.println("MAPA: obj='" + nombre + "' rect=" + rect);
+                if (nombre != null) {
+                    if (rect.width == 0 || rect.height == 0) {
+                        rect = new Rectangle(rect.x - 16, rect.y - 16, 32, 32);
+                    }
+                    this.habilidades.put(nombre, rect);
+                }
+            } else {
+                System.out.println("MAPA: obj NO es RectangleMapObject: " + objeto.getClass().getSimpleName());
+            }
+        }
+        System.out.println("MAPA: habilidades cargadas: " + this.habilidades.size());
+    }
+
+    public Map<String, Rectangle> obtenerHabilidades() {
+        return this.habilidades;
     }
 
     private void cargarCapa(String nombreCapa, List<EntidadEstatica> destino, boolean unidireccional) {
@@ -193,6 +255,11 @@ public class MapaJuego {
         return this.mapa;
     }
 
+    public GestorSprites getGestorSpritesSlime1() { return this.gestorSpritesSlime1; }
+    public GestorCajas getGestorCajasSlime1() { return this.gestorCajasSlime1; }
+    public GestorSprites getGestorSpritesSlime2() { return this.gestorSpritesSlime2; }
+    public GestorCajas getGestorCajasSlime2() { return this.gestorCajasSlime2; }
+
     public void dispose() {
         if (this.mapa != null) {
             this.mapa.dispose();
@@ -201,6 +268,8 @@ public class MapaJuego {
             this.texturaColision.getTexture().dispose();
         }
         this.shapeRenderer.dispose();
+        this.gestorSpritesSlime1.dispose();
+        this.gestorSpritesSlime2.dispose();
     }
 
     private static TextureRegion crearTexturaCompartida() {

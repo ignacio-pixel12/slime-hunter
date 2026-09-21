@@ -7,11 +7,13 @@ public class TablaEstados {
     private final int[][] transiciones;
     private EstadoAnimacion estadoActual;
     private EstadoAnimacion estadoAnterior;
+    private boolean cambioEstado;
 
     public TablaEstados(int cantidadEstados) {
         this.transiciones = new int[cantidadEstados][cantidadEstados];
         this.estadoActual = EstadoAnimacion.INACTIVO;
         this.estadoAnterior = null;
+        this.cambioEstado = true;
     }
 
     public void registrarTransicion(EstadoAnimacion origen, EstadoAnimacion destino) {
@@ -22,9 +24,16 @@ public class TablaEstados {
         if (this.transiciones[this.estadoActual.ordinal()][nuevoEstado.ordinal()] == 1) {
             this.estadoAnterior = this.estadoActual;
             this.estadoActual = nuevoEstado;
+            this.cambioEstado = true;
             return true;
         }
         return false;
+    }
+
+    public boolean huboCambioEstado() {
+        boolean resultado = this.cambioEstado;
+        this.cambioEstado = false;
+        return resultado;
     }
 
     public EstadoAnimacion getEstadoActual() {

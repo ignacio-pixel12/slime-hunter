@@ -6,6 +6,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import com.slimehunter.Constantes;
+
 public class CamaraJuego {
 
 	private final OrthographicCamera camara;
@@ -18,12 +20,12 @@ public class CamaraJuego {
 	private float limiteSuperior;
 
 	public CamaraJuego(float anchoPantalla, float altoPantalla) {
-		this.anchoVista = anchoPantalla;
-		this.altoVista = altoPantalla;
-		this.camara = new OrthographicCamera(anchoPantalla, altoPantalla);
+		this.anchoVista = Constantes.ANCHO_VENTANA;
+		this.altoVista = Constantes.ALTO_VENTANA;
+		this.camara = new OrthographicCamera(Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA);
 		this.camara.zoom = 1f / 3f;
-		this.viewport = new FitViewport(anchoPantalla, altoPantalla, this.camara);
-		this.camara.position.set(anchoPantalla / 2f, altoPantalla / 2f, 0);
+		this.viewport = new FitViewport(Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA, this.camara);
+		this.camara.position.set(Constantes.ANCHO_VENTANA / 2f, Constantes.ALTO_VENTANA / 2f, 0);
 		this.limiteIzquierdo = 0;
 		this.limiteDerecho = Float.MAX_VALUE;
 		this.limiteInferior = 0;

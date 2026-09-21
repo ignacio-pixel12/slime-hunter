@@ -11,6 +11,7 @@ import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.EstadoAnimacion;
 import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.grafico.GestorCajas;
+import com.slimehunter.grafico.TipoCaja;
 import com.slimehunter.grafico.GestorSprites;
 import com.slimehunter.input.Entrada;
 
@@ -33,6 +34,12 @@ public class Jugador extends EntidadDinamica {
     private float temporizadorInvulnerabilidad;
     private float tiempoMuerte;
     private Vector2 puntoAparicion;
+
+    private boolean tieneDobleSalto;
+    private boolean tieneDash;
+    private int saltosRestantes;
+    private float tiempoDash;
+    private float cooldownDash;
 
     private static final float DURACION_ATAQUE = 0.50f;
     private static final float COOLDOWN_ATAQUE = 0.3f;
@@ -59,6 +66,11 @@ public class Jugador extends EntidadDinamica {
         this.temporizadorInvulnerabilidad = 0f;
         this.tiempoMuerte = 0f;
         this.puntoAparicion = new Vector2(Constantes.INICIO_JUGADOR_X, Constantes.INICIO_JUGADOR_Y);
+        this.tieneDobleSalto = false;
+        this.tieneDash = false;
+        this.saltosRestantes = 1;
+        this.tiempoDash = 0;
+        this.cooldownDash = 0;
 
         setSize(this.gestorSprites.getAnchoFrame() * Constantes.JUGADOR_ESCALA,
                 this.gestorSprites.getAltoFrame() * Constantes.JUGADOR_ESCALA);
@@ -102,6 +114,19 @@ public class Jugador extends EntidadDinamica {
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.SALTANDO);
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.CAYENDO);
         t.registrarTransicion(EstadoAnimacion.ATACANDO, EstadoAnimacion.MURIENDO);
+
+        t.registrarTransicion(EstadoAnimacion.MURIENDO, EstadoAnimacion.INACTIVO);
+
+        t.registrarTransicion(EstadoAnimacion.INACTIVO, EstadoAnimacion.DESPLAZANDO);
+        t.registrarTransicion(EstadoAnimacion.CAMINANDO, EstadoAnimacion.DESPLAZANDO);
+        t.registrarTransicion(EstadoAnimacion.SALTANDO, EstadoAnimacion.DESPLAZANDO);
+        t.registrarTransicion(EstadoAnimacion.CAYENDO, EstadoAnimacion.DESPLAZANDO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.CAMINANDO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.INACTIVO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.SALTANDO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.CAYENDO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.ATACANDO);
+        t.registrarTransicion(EstadoAnimacion.DESPLAZANDO, EstadoAnimacion.MURIENDO);
     }
 
     @Override
@@ -123,6 +148,17 @@ public class Jugador extends EntidadDinamica {
             this.cooldownRestante -= delta;
         }
 
+        if (this.tiempoDash > 0) {
+            this.tiempoDash -= delta;
+        }
+        if (this.cooldownDash > 0) {
+            this.cooldownDash -= delta;
+        }
+
+        if (this.enElSuelo) {
+            this.saltosRestantes = this.tieneDobleSalto ? 2 : 1;
+        }
+
         EstadoAnimacion estado = this.getTablaEstados().getEstadoActual();
         switch (estado) {
             case INACTIVO: this.updateInactivo(delta); break;
@@ -131,6 +167,7 @@ public class Jugador extends EntidadDinamica {
             case CAYENDO: this.updateCayendo(delta); break;
             case ATACANDO: this.updateAtacando(delta); break;
             case MURIENDO: this.updateMuerto(delta); break;
+            case DESPLAZANDO: this.updateDesplazando(delta); break;
             default: break;
         }
 
@@ -147,13 +184,15 @@ public class Jugador extends EntidadDinamica {
     }
 
     private void updateInactivo(float delta) {
-        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.INACTIVO) {
+        if (this.getTablaEstados().huboCambioEstado()) {
             this.setRegion(this.gestorSprites.obtenerFrame("inactivo", 0));
             this.detener();
         }
 
         Entrada e = this.getEntrada();
-        if (e.debeAtacar() && this.cooldownRestante <= 0) {
+        if (e.debeDash()) {
+            this.dash();
+        } else if (e.debeAtacar() && this.cooldownRestante <= 0) {
             this.iniciarAtaque();
         } else if (e.debeSaltar()) {
             this.saltar();
@@ -173,12 +212,14 @@ public class Jugador extends EntidadDinamica {
     }
 
     private void updateCaminando(float delta) {
-        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.CAMINANDO) {
+        if (this.getTablaEstados().huboCambioEstado()) {
             this.setRegion(this.gestorSprites.obtenerFrame("caminar", 0));
         }
 
         Entrada e = this.getEntrada();
-        if (e.debeAtacar() && this.cooldownRestante <= 0) {
+        if (e.debeDash()) {
+            this.dash();
+        } else if (e.debeAtacar() && this.cooldownRestante <= 0) {
             this.iniciarAtaque();
         } else if (e.debeSaltar()) {
             this.saltar();
@@ -198,13 +239,18 @@ public class Jugador extends EntidadDinamica {
     }
 
     private void updateSaltando(float delta) {
-        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.SALTANDO) {
+        if (this.getTablaEstados().huboCambioEstado()) {
             this.setRegion(this.gestorSprites.obtenerFrame("salto", 0));
         }
 
         Entrada e = this.getEntrada();
-        if (e.debeAtacar() && this.cooldownRestante <= 0) {
+        if (e.debeDash()) {
+            this.dash();
+        } else if (e.debeAtacar() && this.cooldownRestante <= 0) {
             this.iniciarAtaque();
+        } else if (e.debeSaltar()) {
+            this.saltar();
+            GestorAudio.getInstancia().saltar();
         }
 
         if (e.debeMoverIzquierda()) {
@@ -219,13 +265,18 @@ public class Jugador extends EntidadDinamica {
     }
 
     private void updateCayendo(float delta) {
-        if (this.getTablaEstados().getEstadoAnterior() != EstadoAnimacion.CAYENDO) {
+        if (this.getTablaEstados().huboCambioEstado()) {
             this.setRegion(this.gestorSprites.obtenerFrame("caida", 0));
         }
 
         Entrada e = this.getEntrada();
-        if (e.debeAtacar() && this.cooldownRestante <= 0) {
+        if (e.debeDash()) {
+            this.dash();
+        } else if (e.debeAtacar() && this.cooldownRestante <= 0) {
             this.iniciarAtaque();
+        } else if (e.debeSaltar()) {
+            this.saltar();
+            GestorAudio.getInstancia().saltar();
         }
 
         if (e.debeMoverIzquierda()) {
@@ -268,9 +319,52 @@ public class Jugador extends EntidadDinamica {
 
     private void updateMuerto(float delta) {
         this.tiempoMuerte += delta;
-        if (this.tiempoMuerte >= DURACION_MUERTE) {
-            this.reiniciar();
+    }
+
+    private void updateDesplazando(float delta) {
+        if (this.tiempoDash <= 0) {
+            if (this.estaEnElSuelo()) {
+                if (Math.abs(this.getVelocidad().x) > 0.5f) {
+                    this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAMINANDO);
+                } else {
+                    this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);
+                }
+            } else {
+                if (this.getVelocidad().y > 0) {
+                    this.getTablaEstados().cambiarEstado(EstadoAnimacion.SALTANDO);
+                } else {
+                    this.getTablaEstados().cambiarEstado(EstadoAnimacion.CAYENDO);
+                }
+            }
         }
+    }
+
+    @Override
+    public void saltar() {
+        if (this.saltosRestantes > 0) {
+            this.velocidad.y = Constantes.FUERZA_SALTO;
+            this.enElSuelo = false;
+            this.saltosRestantes--;
+        }
+    }
+
+    public void dash() {
+        if (this.cooldownDash <= 0 && this.tieneDash && this.tiempoDash <= 0) {
+            this.velocidad.x = Constantes.DASH_FUERZA * this.direccion.getFactor();
+            this.tiempoDash = Constantes.DASH_DURACION;
+            this.cooldownDash = Constantes.DASH_COOLDOWN;
+            this.getTablaEstados().cambiarEstado(EstadoAnimacion.DESPLAZANDO);
+        }
+    }
+
+    public void setTieneDobleSalto(boolean tiene) { this.tieneDobleSalto = tiene; }
+    public boolean tieneDobleSalto() { return this.tieneDobleSalto; }
+    public void setTieneDash(boolean tiene) { this.tieneDash = tiene; }
+    public boolean tieneDash() { return this.tieneDash; }
+    public void setSaltosRestantes(int saltos) { this.saltosRestantes = saltos; }
+
+    public boolean estaEnAnimacionMuerte() {
+        return this.vida <= 0 && this.tiempoMuerte < DURACION_MUERTE;
     }
 
     private void iniciarAtaque() {
@@ -317,11 +411,16 @@ public class Jugador extends EntidadDinamica {
         setAlpha(1f);
         this.detener();
         this.velocidad.y = 0;
+        this.tieneDobleSalto = false;
+        this.tieneDash = false;
+        this.saltosRestantes = 1;
+        this.tiempoDash = 0;
+        this.cooldownDash = 0;
         this.getTablaEstados().cambiarEstado(EstadoAnimacion.INACTIVO);
     }
 
     public Rectangle obtenerHitboxAtaque() {
-        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HITBOX,
+        Rectangle caja = this.gestorCajas.getCaja(TipoCaja.HITBOX,
                 this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
         if (caja == null) {
             return null;
@@ -337,7 +436,7 @@ public class Jugador extends EntidadDinamica {
 
     @Override
     public Rectangle obtenerLimites() {
-        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.COLBOX,
+        Rectangle caja = this.gestorCajas.getCaja(TipoCaja.COLBOX,
                 this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
         if (caja == null) {
             return null;
@@ -352,7 +451,7 @@ public class Jugador extends EntidadDinamica {
 
     @Override
     public Rectangle obtenerHurtbox() {
-        Rectangle caja = this.gestorCajas.getCaja(GestorCajas.TipoCaja.HURTBOX,
+        Rectangle caja = this.gestorCajas.getCaja(TipoCaja.HURTBOX,
                 this.getNombreAnimacion(this.getTablaEstados().getEstadoActual()), this.getFrameActual());
         if (caja == null) {
             return null;
