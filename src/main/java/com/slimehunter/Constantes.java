@@ -62,4 +62,13 @@ public final class Constantes {
     public static final float DASH_FUERZA = 800f;
     public static final float DASH_DURACION = 0.2f;
     public static final float DASH_COOLDOWN = 1.0f;
+
+    public static final int JEFE_VIDA_MAXIMA = 20;
+    public static final float JEFE_ANCHO_COLISION = 48f;
+    public static final float JEFE_ALTO_COLISION = 64f;
+    public static final float JEFE_VELOCIDAD = 150f;
+    public static final float JEFE_ESCALA = 2f;
+    public static final int JEFE_DANO = 2;
+    public static final float JEFE_INTERVALO_ACCION = 3f;
+    public static final float JEFE_FUERZA_SALTO = 450f;
 }

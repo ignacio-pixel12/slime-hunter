@@ -11,6 +11,7 @@ import com.slimehunter.SlimeHunter;
 import com.slimehunter.entidad.Enemigo;
 import com.slimehunter.entidad.EnemigoSaltarin;
 import com.slimehunter.entidad.Entidad;
+import com.slimehunter.entidad.JefeFinal;
 import com.slimehunter.grafico.GestorAudio;
 import com.slimehunter.entidad.Jugador;
 import com.slimehunter.grafico.CamaraJuego;
@@ -37,6 +38,7 @@ public class PantallaJuego implements Screen {
     private InterfazHUD hud;
     private List<Enemigo> enemigos;
     private List<EnemigoSaltarin> enemigosSaltarines;
+    private JefeFinal jefe;
     private float tiempoPartida;
     private boolean terminado;
     private final Set<Integer> enemigosGolpeados = new HashSet<>();
@@ -86,6 +88,14 @@ public class PantallaJuego implements Screen {
 
         this.debugColisiones = new DebugColisiones();
         this.hud = new InterfazHUD();
+
+        com.badlogic.gdx.math.Vector2 spawnJefe = this.mapa.obtenerSpawnJefe();
+        if (spawnJefe != null) {
+            this.jefe = new JefeFinal(spawnJefe.x, spawnJefe.y,
+                spawnJefe.x - 200, spawnJefe.x + 200,
+                this.mapa.getGestorSpritesJefe(), this.mapa.getGestorCajasJefe());
+        }
+
         Gdx.input.setInputProcessor(this.manejadorEntrada);
         GestorAudio.getInstancia().reproducirMusica();
     }
@@ -114,6 +124,10 @@ public class PantallaJuego implements Screen {
 
         for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
             saltarin.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
+        }
+
+        if (this.jefe != null && !this.jefe.estaMuerto()) {
+            this.jefe.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
         }
 
         Rectangle hitboxAtaque = this.jugador.obtenerHitboxAtaque();
@@ -239,6 +253,23 @@ public class PantallaJuego implements Screen {
             }
         }
 
+        if (this.jefe != null && !this.jefe.estaMuerto()) {
+            Rectangle hurtboxJefe = this.jefe.obtenerHurtbox();
+            Rectangle hurtboxJugador2 = this.jugador.obtenerHurtbox();
+            if (hurtboxJugador2 != null && hurtboxJefe != null) {
+                if (hurtboxJugador2.overlaps(hurtboxJefe)) {
+                    this.jugador.recibirDano(this.jefe.getDano());
+                }
+            }
+
+            Rectangle hitboxAtaque2 = this.jugador.obtenerHitboxAtaque();
+            if (hitboxAtaque2 != null && hurtboxJefe != null) {
+                if (hitboxAtaque2.overlaps(hurtboxJefe)) {
+                    this.jefe.recibirDano(this.jugador.getDano());
+                }
+            }
+        }
+
         this.mapa.render(this.camara.getCamara());
 
         if (this.manejadorEntrada.debeMostrarDebug()) {
@@ -266,6 +297,9 @@ public class PantallaJuego implements Screen {
         for (EnemigoSaltarin saltarin : this.enemigosSaltarines) {
             saltarin.render(this.juego.getBatch());
         }
+        if (this.jefe != null) {
+            this.jefe.render(this.juego.getBatch());
+        }
         this.juego.getBatch().end();
 
         Matrix4 matrizPantalla = new Matrix4();
@@ -281,8 +315,18 @@ public class PantallaJuego implements Screen {
             GestorAudio.getInstancia().derrota();
         }
 
+        if (!this.terminado && this.jefe != null && this.jefe.estaMuerto()) {
+            this.terminado = true;
+            GestorAudio.getInstancia().detenerMusica();
+            GestorAudio.getInstancia().victoria();
+        }
+
         if (this.terminado && !this.jugador.estaEnAnimacionMuerte()) {
-            this.juego.setScreen(new PantallaDerrota(this.juego, this.nombreJugador, this.tiempoPartida));
+            if (this.jugador.estaMuerto()) {
+                this.juego.setScreen(new PantallaDerrota(this.juego, this.nombreJugador, this.tiempoPartida));
+            } else {
+                this.juego.setScreen(new PantallaVictoria(this.juego, this.nombreJugador, this.tiempoPartida));
+            }
         }
     }
 

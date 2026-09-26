@@ -43,7 +43,10 @@ public class MapaJuego {
     private final GestorCajas gestorCajasSlime1;
     private final GestorSprites gestorSpritesSlime2;
     private final GestorCajas gestorCajasSlime2;
+    private final GestorSprites gestorSpritesJefe;
+    private final GestorCajas gestorCajasJefe;
     private Vector2 spawn;
+    private Vector2 spawnJefe;
 
     public MapaJuego() {
         this.colisiones = new ArrayList<>();
@@ -57,6 +60,8 @@ public class MapaJuego {
         this.gestorCajasSlime1 = new GestorCajas("slime1-cajas.json");
         this.gestorSpritesSlime2 = new GestorSprites("slime2-sheet.png", "slime2-data.json");
         this.gestorCajasSlime2 = new GestorCajas("slime2-cajas.json");
+        this.gestorSpritesJefe = new GestorSprites("slime4-sheet.png", "slime4-data.json");
+        this.gestorCajasJefe = new GestorCajas("slime4-cajas.json");
     }
 
     public void cargar(String archivoTmx) {
@@ -68,6 +73,7 @@ public class MapaJuego {
         cargarPinches();
         cargarHabilidades();
         this.buscarSpawn();
+        this.buscarSpawnJefe();
     }
 
     public float obtenerAnchoMapa() {
@@ -196,6 +202,23 @@ public class MapaJuego {
         return this.habilidades;
     }
 
+    private void buscarSpawnJefe() {
+        com.badlogic.gdx.maps.MapLayer capa = this.mapa.getLayers().get("jefe_spawn");
+        if (capa == null) {
+            return;
+        }
+        for (MapObject objeto : capa.getObjects()) {
+            if (objeto instanceof RectangleMapObject) {
+                this.spawnJefe = obtenerCentroSpawn((RectangleMapObject) objeto);
+                return;
+            }
+        }
+    }
+
+    public Vector2 obtenerSpawnJefe() {
+        return this.spawnJefe;
+    }
+
     private void cargarCapa(String nombreCapa, List<EntidadEstatica> destino, boolean unidireccional) {
         if (this.mapa.getLayers().get(nombreCapa) == null) {
             return;
@@ -259,6 +282,8 @@ public class MapaJuego {
     public GestorCajas getGestorCajasSlime1() { return this.gestorCajasSlime1; }
     public GestorSprites getGestorSpritesSlime2() { return this.gestorSpritesSlime2; }
     public GestorCajas getGestorCajasSlime2() { return this.gestorCajasSlime2; }
+    public GestorSprites getGestorSpritesJefe() { return this.gestorSpritesJefe; }
+    public GestorCajas getGestorCajasJefe() { return this.gestorCajasJefe; }
 
     public void dispose() {
         if (this.mapa != null) {
@@ -270,6 +295,7 @@ public class MapaJuego {
         this.shapeRenderer.dispose();
         this.gestorSpritesSlime1.dispose();
         this.gestorSpritesSlime2.dispose();
+        this.gestorSpritesJefe.dispose();
     }
 
     private static TextureRegion crearTexturaCompartida() {
