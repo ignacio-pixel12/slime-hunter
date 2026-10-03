@@ -1,8 +1,10 @@
 package com.slimehunter.entidad;
 
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.slimehunter.Constantes;
 import com.slimehunter.estado.TablaEstados;
+import com.slimehunter.grafico.Direccion;
 import com.slimehunter.grafico.EstadoAnimacion;
 import com.slimehunter.grafico.GestorCajas;
 import com.slimehunter.grafico.GestorSprites;
@@ -20,16 +22,22 @@ public class JefeFinal extends EntidadDinamica {
     private boolean muerto;
     private float tiempoMuerte;
 
-    private float limiteIzquierdo;
-    private float limiteDerecho;
-    private boolean yendoDerecha;
+    private enum Fase {
+        QUIETO,
+        PERSEGUIR,
+        ATACAR
+    }
 
+    private final Vector2 haciaJugador = new Vector2();
+    private Fase fase;
     private float temporizadorAccion;
+    private boolean yaAtaco;
+    private String animacionActual;
     private static final float DURACION_HIT = 0.5f;
+    private static final float UMBRAL_DIRECCION = 4f;
     private float tiempoHit;
 
-    public JefeFinal(float x, float y, float limiteIzq, float limiteDer,
-                     GestorSprites gestorSprites, GestorCajas gestorCajas) {
+    public JefeFinal(float x, float y, GestorSprites gestorSprites, GestorCajas gestorCajas) {
         super(gestorSprites.obtenerFrameInactivo(), x, y,
                 Constantes.JEFE_ANCHO_COLISION, Constantes.JEFE_ALTO_COLISION,
                 Constantes.JEFE_VELOCIDAD, 8f, EstadoAnimacion.values().length, null);
@@ -42,10 +50,10 @@ public class JefeFinal extends EntidadDinamica {
         this.dano = Constantes.JEFE_DANO;
         this.muerto = false;
         this.tiempoMuerte = 0f;
-        this.limiteIzquierdo = limiteIzq;
-        this.limiteDerecho = limiteDer;
-        this.yendoDerecha = true;
+        this.fase = Fase.PERSEGUIR;
         this.temporizadorAccion = 0f;
+        this.yaAtaco = false;
+        this.animacionActual = "caminar";
         this.tiempoHit = 0f;
 
         setSize(64 * Constantes.JEFE_ESCALA, 64 * Constantes.JEFE_ESCALA);
@@ -78,40 +86,115 @@ public class JefeFinal extends EntidadDinamica {
             default: break;
         }
 
-        this.voltearSprite(this.yendoDerecha);
+        this.mirarAlJugador();
+    }
+
+    public void fijarObjetivo(Vector2 posicionJugador) {
+        this.haciaJugador.set(posicionJugador).sub(this.posicion);
     }
 
     private void updateCaminando(float delta) {
-        this.temporizadorAccion += delta;
+        if (!(this.fase == Fase.ATACAR && !this.estaEnRangoDeAtaque())) {
+            this.temporizadorAccion += delta;
+        }
+        if (this.temporizadorAccion >= this.duracionFase()) {
+            this.cambiarFase();
+        }
 
-        if (this.temporizadorAccion >= Constantes.JEFE_INTERVALO_ACCION) {
-            this.temporizadorAccion = 0f;
-            double rand = Math.random();
-            if (rand < 0.6) {
-                this.saltar();
-            } else {
-                if (this.yendoDerecha) {
-                    this.mover(Constantes.JEFE_VELOCIDAD);
+        switch (this.fase) {
+            case QUIETO:
+                this.detener();
+                if (this.enElSuelo) {
+                    this.animacionActual = "caminar";
+                    this.setRegion(this.gestorSprites.obtenerFrame("caminar", 0f));
                 } else {
-                    this.mover(-Constantes.JEFE_VELOCIDAD);
+                    this.avanzarAnimacion(delta);
                 }
-            }
+                break;
+            case PERSEGUIR:
+                this.perseguir();
+                this.saltarSiElJugadorEstaArriba();
+                this.avanzarAnimacion(delta);
+                break;
+            case ATACAR:
+                this.perseguir();
+                if (!this.yaAtaco && this.estaEnRangoDeAtaque()) {
+                    this.saltar();
+                    this.yaAtaco = true;
+                    this.tiempoAnimacion = 0f;
+                } else if (!this.estaEnRangoDeAtaque()) {
+                    this.saltarSiElJugadorEstaArriba();
+                }
+                this.avanzarAnimacion(delta);
+                break;
         }
+    }
 
-        if (this.posicion.x >= this.limiteDerecho) {
-            this.yendoDerecha = false;
-        } else if (this.posicion.x <= this.limiteIzquierdo) {
-            this.yendoDerecha = true;
+    private void cambiarFase() {
+        this.temporizadorAccion = 0f;
+        switch (this.fase) {
+            case QUIETO:
+                this.fase = Fase.PERSEGUIR;
+                break;
+            case PERSEGUIR:
+                this.fase = Fase.ATACAR;
+                this.yaAtaco = false;
+                break;
+            case ATACAR:
+                this.fase = Math.random() < 0.4 ? Fase.QUIETO : Fase.PERSEGUIR;
+                break;
         }
+    }
 
-        if (this.yendoDerecha) {
-            this.mover(Constantes.JEFE_VELOCIDAD);
-        } else {
-            this.mover(-Constantes.JEFE_VELOCIDAD);
+    private float duracionFase() {
+        switch (this.fase) {
+            case QUIETO:
+                return Constantes.JEFE_DURACION_QUIETO;
+            case ATACAR:
+                return Constantes.JEFE_DURACION_ATACAR;
+            default:
+                return Constantes.JEFE_DURACION_PERSEGUIR;
         }
+    }
 
+    private boolean estaEnRangoDeAtaque() {
+        return Math.abs(this.haciaJugador.x) <= Constantes.JEFE_RANGO_ATAQUE;
+    }
+
+    private void perseguir() {
+        float direccionX = Math.signum(this.haciaJugador.x);
+        if (Math.abs(this.haciaJugador.x) <= UMBRAL_DIRECCION) {
+            this.detener();
+            return;
+        }
+        this.mover(direccionX * Constantes.JEFE_VELOCIDAD);
+    }
+
+    private void saltarSiElJugadorEstaArriba() {
+        if (this.haciaJugador.y > Constantes.JEFE_ALTURA_SALTO
+                && Math.abs(this.haciaJugador.x) < Constantes.JEFE_RANGO_SALTO_X) {
+            this.saltar();
+        }
+    }
+
+    private void mirarAlJugador() {
+        if (Math.abs(this.haciaJugador.x) <= UMBRAL_DIRECCION) {
+            return;
+        }
+        boolean derecha = this.haciaJugador.x > 0;
+        this.direccion = derecha ? Direccion.DERECHA : Direccion.IZQUIERDA;
+        this.voltearSprite(derecha);
+    }
+
+    private void avanzarAnimacion(float delta) {
         this.tiempoAnimacion += delta;
-        this.setRegion(this.gestorSprites.obtenerFrame("caminar", this.tiempoAnimacion));
+        if (!this.enElSuelo && this.gestorSprites.existeAnimacion("saltar")) {
+            this.animacionActual = "saltar";
+            this.setRegion(this.gestorSprites.obtenerFrame("saltar", this.tiempoAnimacion));
+        } else {
+            this.animacionActual = "caminar";
+            this.setRegion(this.gestorSprites.obtenerFrame("caminar", this.tiempoAnimacion));
+        }
     }
 
     private void updateRecibiendoDano(float delta) {
@@ -153,7 +236,10 @@ public class JefeFinal extends EntidadDinamica {
     public int getDano() { return this.dano; }
 
     private String getNombreAnimacion() {
-        return this.getTablaEstados().getEstadoActual() == EstadoAnimacion.RECIBIENDO_DANO ? "hit" : "caminar";
+        if (this.getTablaEstados().getEstadoActual() == EstadoAnimacion.RECIBIENDO_DANO) {
+            return "hit";
+        }
+        return this.animacionActual;
     }
 
     private int getFrameActual() {

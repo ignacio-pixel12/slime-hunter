@@ -41,6 +41,7 @@ public class PantallaJuego implements Screen {
     private JefeFinal jefe;
     private float tiempoPartida;
     private boolean terminado;
+    private static final int ID_JEFE_GOLPEADO = 2000;
     private final Set<Integer> enemigosGolpeados = new HashSet<>();
     private boolean ataqueAnteriorActivo = false;
 
@@ -92,7 +93,6 @@ public class PantallaJuego implements Screen {
         com.badlogic.gdx.math.Vector2 spawnJefe = this.mapa.obtenerSpawnJefe();
         if (spawnJefe != null) {
             this.jefe = new JefeFinal(spawnJefe.x, spawnJefe.y,
-                spawnJefe.x - 200, spawnJefe.x + 200,
                 this.mapa.getGestorSpritesJefe(), this.mapa.getGestorCajasJefe());
         }
 
@@ -127,6 +127,7 @@ public class PantallaJuego implements Screen {
         }
 
         if (this.jefe != null && !this.jefe.estaMuerto()) {
+            this.jefe.fijarObjetivo(this.jugador.getPosicion());
             this.jefe.actualizar(delta, this.mapa.obtenerColisiones(), this.mapa.obtenerPlataformas());
         }
 
@@ -159,6 +160,14 @@ public class PantallaJuego implements Screen {
                     }
                 }
                 indice++;
+            }
+            if (this.jefe != null && !this.jefe.estaMuerto()
+                    && !this.enemigosGolpeados.contains(ID_JEFE_GOLPEADO)) {
+                Rectangle hurtboxJefe = this.jefe.obtenerHurtbox();
+                if (hurtboxJefe != null && hurtboxJefe.overlaps(hitboxAtaque)) {
+                    this.jefe.recibirDano(this.jugador.getDano());
+                    this.enemigosGolpeados.add(ID_JEFE_GOLPEADO);
+                }
             }
         }
 
@@ -259,13 +268,6 @@ public class PantallaJuego implements Screen {
             if (hurtboxJugador2 != null && hurtboxJefe != null) {
                 if (hurtboxJugador2.overlaps(hurtboxJefe)) {
                     this.jugador.recibirDano(this.jefe.getDano());
-                }
-            }
-
-            Rectangle hitboxAtaque2 = this.jugador.obtenerHitboxAtaque();
-            if (hitboxAtaque2 != null && hurtboxJefe != null) {
-                if (hitboxAtaque2.overlaps(hurtboxJefe)) {
-                    this.jefe.recibirDano(this.jugador.getDano());
                 }
             }
         }

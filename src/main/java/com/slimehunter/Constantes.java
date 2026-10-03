@@ -69,6 +69,11 @@ public final class Constantes {
     public static final float JEFE_VELOCIDAD = 150f;
     public static final float JEFE_ESCALA = 2f;
     public static final int JEFE_DANO = 2;
-    public static final float JEFE_INTERVALO_ACCION = 3f;
     public static final float JEFE_FUERZA_SALTO = 450f;
+    public static final float JEFE_DURACION_QUIETO = 1.5f;
+    public static final float JEFE_DURACION_PERSEGUIR = 2.5f;
+    public static final float JEFE_DURACION_ATACAR = 0.8f;
+    public static final float JEFE_RANGO_ATAQUE = 90f;
+    public static final float JEFE_RANGO_SALTO_X = 120f;
+    public static final float JEFE_ALTURA_SALTO = 40f;
 }
