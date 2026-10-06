@@ -1,5 +1,6 @@
 package com.slimehunter.entidad;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.slimehunter.Constantes;
@@ -29,6 +30,8 @@ public class JefeFinal extends EntidadDinamica {
     }
 
     private final Vector2 haciaJugador = new Vector2();
+    private final Vector2 spawn = new Vector2();
+    private boolean activado;
     private Fase fase;
     private float temporizadorAccion;
     private boolean yaAtaco;
@@ -50,6 +53,8 @@ public class JefeFinal extends EntidadDinamica {
         this.dano = Constantes.JEFE_DANO;
         this.muerto = false;
         this.tiempoMuerte = 0f;
+        this.spawn.set(x, y);
+        this.activado = false;
         this.fase = Fase.PERSEGUIR;
         this.temporizadorAccion = 0f;
         this.yaAtaco = false;
@@ -94,6 +99,17 @@ public class JefeFinal extends EntidadDinamica {
     }
 
     private void updateCaminando(float delta) {
+        if (!this.activado) {
+            if (this.jugadorEnArena()) {
+                this.activado = true;
+            } else {
+                this.detener();
+                this.animacionActual = "caminar";
+                this.setRegion(this.gestorSprites.obtenerFrame("caminar", 0f));
+                return;
+            }
+        }
+
         if (!(this.fase == Fase.ATACAR && !this.estaEnRangoDeAtaque())) {
             this.temporizadorAccion += delta;
         }
@@ -161,13 +177,21 @@ public class JefeFinal extends EntidadDinamica {
         return Math.abs(this.haciaJugador.x) <= Constantes.JEFE_RANGO_ATAQUE;
     }
 
+    private boolean jugadorEnArena() {
+        return Math.abs(this.haciaJugador.x) <= Constantes.JEFE_RANGO_ACTIVACION
+                && Math.abs(this.haciaJugador.y) <= Constantes.JEFE_RANGO_ACTIVACION_Y;
+    }
+
     private void perseguir() {
-        float direccionX = Math.signum(this.haciaJugador.x);
-        if (Math.abs(this.haciaJugador.x) <= UMBRAL_DIRECCION) {
+        float izquierda = this.spawn.x - Constantes.JEFE_LIMITE_ARENA;
+        float derecha = this.spawn.x + Constantes.JEFE_LIMITE_ARENA;
+        float objetivoX = MathUtils.clamp(this.posicion.x + this.haciaJugador.x, izquierda, derecha);
+        float direccionX = objetivoX - this.posicion.x;
+        if (Math.abs(direccionX) <= UMBRAL_DIRECCION) {
             this.detener();
             return;
         }
-        this.mover(direccionX * Constantes.JEFE_VELOCIDAD);
+        this.mover(Math.signum(direccionX) * Constantes.JEFE_VELOCIDAD);
     }
 
     private void saltarSiElJugadorEstaArriba() {

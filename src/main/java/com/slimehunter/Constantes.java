@@ -76,4 +76,7 @@ public final class Constantes {
     public static final float JEFE_RANGO_ATAQUE = 90f;
     public static final float JEFE_RANGO_SALTO_X = 120f;
     public static final float JEFE_ALTURA_SALTO = 40f;
+    public static final float JEFE_RANGO_ACTIVACION = 520f;
+    public static final float JEFE_RANGO_ACTIVACION_Y = 160f;
+    public static final float JEFE_LIMITE_ARENA = 220f;
 }
